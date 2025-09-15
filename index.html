@@ -270,20 +270,17 @@
                 'rgba(34, 197, 94, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(168, 85, 247, 0.7)',
             ];
             
+            // ===== INÍCIO DA CORREÇÃO DO CALENDÁRIO =====
             const datePicker = flatpickr(filterDateRange, {
-                mode: "multiple", 
+                mode: "range", // Alterado para "range" para uma experiência de período nativa
                 dateFormat: "d/m/Y",
-                conjunction: " até ", 
                 locale: "pt",
                 onChange: function(selectedDates, dateStr, instance) {
-                    if (selectedDates.length > 2) {
-                        instance.setDate(selectedDates.slice(-1));
-                        return;
-                    }
                     updateDashboard();
                     clearDateFilterBtn.classList.toggle('hidden', selectedDates.length === 0);
                 }
             });
+            // ===== FIM DA CORREÇÃO DO CALENDÁRIO =====
 
             clearDateFilterBtn.addEventListener('click', () => datePicker.clear());
 
@@ -377,29 +374,21 @@
 
                 // ===== INÍCIO DA CORREÇÃO FINAL DO FILTRO DE DATA =====
                 if (selectedDates.length > 0) {
-                    // Esta função converte uma data (seja objeto Date ou string 'YYYY-MM-DD')
-                    // para um número que representa o início daquele dia em UTC, ignorando fuso horário.
                     const getDayTimestamp = (dateInput) => {
-                        // Se for uma string no formato 'YYYY-MM-DD', construir a data em UTC
-                        // para evitar que o fuso horário local a desloque para o dia anterior.
                         if (typeof dateInput === 'string' && dateInput.includes('-')) {
                             const parts = dateInput.split('-').map(Number);
-                            // new Date(Date.UTC(ano, mês_index, dia))
-                            return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])).getTime();
+                            return Date.UTC(parts[0], parts[1] - 1, parts[2]);
                         }
-                        // Para objetos Date vindos diretamente do calendário
                         const d = new Date(dateInput);
-                        return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).getTime();
+                        return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
                     };
 
-                    if (selectedDates.length === 1) {
-                        const singleDayTimestamp = getDayTimestamp(selectedDates[0]);
-                        filteredMentions = filteredMentions.filter(m => getDayTimestamp(m.date) === singleDayTimestamp);
-
-                    } else { // selectedDates.length >= 2 (pegamos os dois primeiros por segurança)
-                        const sortedDates = selectedDates.sort((a,b) => a - b);
-                        const startTimestamp = getDayTimestamp(sortedDates[0]);
-                        const endTimestamp = getDayTimestamp(sortedDates[1]);
+                    // O modo "range" garante que sempre teremos 0 ou 2 datas.
+                    // Se apenas uma for selecionada, a data de fim é igual à de início.
+                    if (selectedDates.length === 2) { 
+                        const startTimestamp = getDayTimestamp(selectedDates[0]);
+                        const endTimestamp = getDayTimestamp(selectedDates[1]);
+                        
                         filteredMentions = filteredMentions.filter(m => {
                             const mentionTimestamp = getDayTimestamp(m.date);
                             return mentionTimestamp >= startTimestamp && mentionTimestamp <= endTimestamp;
