@@ -280,7 +280,10 @@
                 }
             });
 
-            clearDateFilterBtn.addEventListener('click', () => datePicker.clear());
+            clearDateFilterBtn.addEventListener('click', () => {
+                datePicker.clear();
+                updateDashboard();
+            });
 
             const showFeedback = (message, type = 'success') => {
                 const modal = document.getElementById('feedback-modal');
@@ -363,39 +366,69 @@
                 lucide.createIcons();
             };
 
+            // ===== FUNÇÃO CORRIGIDA PARA NORMALIZAR DATAS =====
+            const normalizeDate = (dateInput) => {
+                let date;
+                
+                // Se for um objeto Date do flatpickr
+                if (dateInput instanceof Date) {
+                    date = new Date(dateInput);
+                } 
+                // Se for string no formato YYYY-MM-DD (do input date)
+                else if (typeof dateInput === 'string' && dateInput.includes('-')) {
+                    date = new Date(dateInput + 'T00:00:00.000Z');
+                } 
+                // Outros formatos
+                else {
+                    date = new Date(dateInput);
+                }
+                
+                // Garante que estamos trabalhando apenas com a data (sem horário)
+                return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+            };
+
             const updateDashboard = () => {
                 const channelFilterValue = filterChannel.value;
                 const sentimentFilterValue = filterSentiment.value;
                 const selectedDates = datePicker.selectedDates;
 
-                let filteredMentions = mentions;
+                let filteredMentions = [...mentions]; // Cria uma cópia
 
-                // ===== INÍCIO DA CORREÇÃO DEFINITIVA DO FILTRO DE DATA =====
+                // ===== FILTRO DE DATA CORRIGIDO =====
                 if (selectedDates.length > 0) {
-                    const getDayTimestamp = (dateInput) => {
-                        if (typeof dateInput === 'string' && dateInput.includes('-')) {
-                            const parts = dateInput.split('-').map(Number);
-                            return Date.UTC(parts[0], parts[1] - 1, parts[2]);
-                        }
-                        const d = new Date(dateInput);
-                        return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-                    };
+                    console.log('Filtro de data ativo, datas selecionadas:', selectedDates);
                     
-                    // Lógica para data única ou range
-                    // Se o usuário selecionou apenas uma data, o flatpickr em modo 'range'
-                    // armazena essa data como início e fim.
-                    const startTimestamp = getDayTimestamp(selectedDates[0]);
-                    const endTimestamp = selectedDates.length > 1 ? getDayTimestamp(selectedDates[1]) : startTimestamp;
+                    const startDate = normalizeDate(selectedDates[0]);
+                    const endDate = selectedDates.length > 1 ? normalizeDate(selectedDates[1]) : startDate;
                     
-                    filteredMentions = filteredMentions.filter(m => {
-                        const mentionTimestamp = getDayTimestamp(m.date);
-                        return mentionTimestamp >= startTimestamp && mentionTimestamp <= endTimestamp;
+                    console.log('Período de filtro:', {
+                        inicio: startDate.toISOString().split('T')[0],
+                        fim: endDate.toISOString().split('T')[0]
                     });
+                    
+                    filteredMentions = filteredMentions.filter(mention => {
+                        const mentionDate = normalizeDate(mention.date);
+                        const isInRange = mentionDate >= startDate && mentionDate <= endDate;
+                        
+                        if (!isInRange) {
+                            console.log(`Menção excluída: ${mention.date} (normalizada: ${mentionDate.toISOString().split('T')[0]}) não está no range`);
+                        }
+                        
+                        return isInRange;
+                    });
+                    
+                    console.log(`Menções após filtro de data: ${filteredMentions.length} de ${mentions.length}`);
                 }
-                // ===== FIM DA CORREÇÃO DEFINITIVA DO FILTRO DE DATA =====
                 
-                if (channelFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
-                if (sentimentFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
+                // Filtros de canal e sentimento
+                if (channelFilterValue !== 'all') {
+                    filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
+                }
+                if (sentimentFilterValue !== 'all') {
+                    filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
+                }
+                
+                console.log(`Total final após todos os filtros: ${filteredMentions.length}`);
                 
                 const total = filteredMentions.length;
                 document.getElementById('kpi-total').textContent = total;
@@ -487,4 +520,3 @@
     </script>
 </body>
 </html>
-
