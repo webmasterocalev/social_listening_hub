@@ -394,40 +394,46 @@
 
                 let filteredMentions = [...mentions]; // Cria uma cópia
 
-                // ===== FILTRO DE DATA CORRIGIDO =====
-                if (selectedDates.length > 0) {
-                    console.log('Filtro de data ativo, datas selecionadas:', selectedDates);
-                    
-                    const startDate = normalizeDate(selectedDates[0]);
-                    const endDate = selectedDates.length > 1 ? normalizeDate(selectedDates[1]) : startDate;
-                    
-                    console.log('Período de filtro:', {
-                        inicio: startDate.toISOString().split('T')[0],
-                        fim: endDate.toISOString().split('T')[0]
-                    });
-                    
-                    filteredMentions = filteredMentions.filter(mention => {
-                        const mentionDate = normalizeDate(mention.date);
-                        const isInRange = mentionDate >= startDate && mentionDate <= endDate;
-                        
-                        if (!isInRange) {
-                            console.log(`Menção excluída: ${mention.date} (normalizada: ${mentionDate.toISOString().split('T')[0]}) não está no range`);
-                        }
-                        
-                        return isInRange;
-                    });
-                    
-                    console.log(`Menções após filtro de data: ${filteredMentions.length} de ${mentions.length}`);
-                }
-                
-                // Filtros de canal e sentimento
-                if (channelFilterValue !== 'all') {
-                    filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
-                }
-                if (sentimentFilterValue !== 'all') {
-                    filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
-                }
-                
+              // ===== FUNÇÃO CORRIGIDA PARA NORMALIZAR DATAS =====
+const normalizeDate = (dateInput) => {
+    let date;
+    
+    if (dateInput instanceof Date) {
+        date = new Date(dateInput);
+    } else if (typeof dateInput === 'string' && dateInput.includes('-')) {
+        date = new Date(dateInput + 'T00:00:00.000Z'); // yyyy-mm-dd
+    } else {
+        date = new Date(dateInput);
+    }
+    
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+};
+
+const updateDashboard = () => {
+    const channelFilterValue = filterChannel.value;
+    const sentimentFilterValue = filterSentiment.value;
+    const selectedDates = datePicker.selectedDates;
+
+    let filteredMentions = [...mentions];
+
+    // ===== FILTRO DE DATA CORRIGIDO =====
+    if (selectedDates.length > 0) {
+        const startDate = normalizeDate(selectedDates[0]);
+        const endDate = selectedDates.length > 1 ? normalizeDate(selectedDates[1]) : startDate;
+
+        filteredMentions = filteredMentions.filter(mention => {
+            const mentionDate = normalizeDate(mention.date);
+            return mentionDate >= startDate && mentionDate <= endDate;
+        });
+    }
+
+    // Filtros de canal e sentimento
+    if (channelFilterValue !== 'all') {
+        filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
+    }
+    if (sentimentFilterValue !== 'all') {
+        filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
+    }                
                 console.log(`Total final após todos os filtros: ${filteredMentions.length}`);
                 
                 const total = filteredMentions.length;
