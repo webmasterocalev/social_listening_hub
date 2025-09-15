@@ -7,6 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Biblioteca do Calendário -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script> <!-- Tradução do calendário -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,6 +42,9 @@
         /* Estilo para o modal de feedback */
         .feedback-modal {
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .flatpickr-input {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -127,7 +135,7 @@
                 <!-- Filtros -->
                  <div class="bg-white p-4 rounded-2xl shadow-lg">
                     <h3 class="text-lg font-semibold mb-3 flex items-center gap-2"><i data-lucide="filter" class="text-slate-500"></i>Filtros</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="filter-channel" class="block text-sm font-medium text-slate-600 mb-1">Canal</label>
                             <select id="filter-channel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
@@ -143,13 +151,14 @@
                                 <option value="Neutro">Neutro</option>
                             </select>
                         </div>
-                         <div>
-                            <label for="filter-date" class="block text-sm font-medium text-slate-600 mb-1">Período</label>
-                            <select id="filter-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                <option value="all">Todo o período</option>
-                                <option value="7">Últimos 7 dias</option>
-                                <option value="30">Últimos 30 dias</option>
-                            </select>
+                         <div class="sm:col-span-2">
+                            <label for="filter-date-range" class="block text-sm font-medium text-slate-600 mb-1">Período</label>
+                             <div class="relative">
+                                <input type="text" id="filter-date-range" placeholder="Selecione um período..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <button id="clear-date-filter" class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -189,6 +198,15 @@
                         <div class="chart-container"><canvas id="topic-chart"></canvas></div>
                     </div>
                 </div>
+
+                <!-- Feed de Menções Recentes -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><i data-lucide="message-square-text" class="text-slate-500"></i>Menções Recentes</h3>
+                    <div id="mentions-feed" class="max-h-96 overflow-y-auto space-y-4 pr-2">
+                        <p class="text-slate-500 text-center py-4">Nenhuma menção encontrada para os filtros selecionados.</p>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -203,11 +221,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // =====================================================================
-            // CONFIGURAÇÃO - COLE A URL DO SEU SCRIPT AQUI
+            // CONFIGURAÇÃO
             // =====================================================================
             const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwXlXranbWPM8ZPwVnXztEcnyhz2g_HRQkK6dfmmoNWLv-RkNWL46omvRegFKuLFXra/exec'; 
-            // =====================================================================
-
+            
             // Inicialização dos ícones Lucide
             lucide.createIcons();
 
@@ -218,7 +235,9 @@
             const buttonLoader = document.getElementById('button-loader');
             const filterChannel = document.getElementById('filter-channel');
             const filterSentiment = document.getElementById('filter-sentiment');
-            const filterDate = document.getElementById('filter-date');
+            const filterDateRange = document.getElementById('filter-date-range');
+            const clearDateFilterBtn = document.getElementById('clear-date-filter');
+            const mentionsFeedContainer = document.getElementById('mentions-feed');
             
             // Variáveis de estado e gráficos
             let mentions = [];
@@ -231,14 +250,23 @@
                 'Neutro': 'rgba(100, 116, 139, 0.7)'  // slate-500
             };
             const chartColors = [
-                'rgba(99, 102, 241, 0.7)',  // indigo-500
-                'rgba(59, 130, 246, 0.7)',  // blue-500
-                'rgba(14, 165, 233, 0.7)', // sky-500
-                'rgba(34, 197, 94, 0.7)',  // green-500
-                'rgba(249, 115, 22, 0.7)',  // orange-500
-                'rgba(168, 85, 247, 0.7)', // purple-500
+                'rgba(99, 102, 241, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(14, 165, 233, 0.7)',
+                'rgba(34, 197, 94, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(168, 85, 247, 0.7)',
             ];
             
+            // Inicialização do seletor de data
+            const datePicker = flatpickr(filterDateRange, {
+                mode: "range",
+                dateFormat: "d/m/Y",
+                locale: "pt",
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateDashboard();
+                    clearDateFilterBtn.classList.toggle('hidden', selectedDates.length === 0);
+                }
+            });
+
+            clearDateFilterBtn.addEventListener('click', () => datePicker.clear());
+
             // Função para mostrar feedback visual (sucesso/erro)
             const showFeedback = (message, type = 'success') => {
                 const modal = document.getElementById('feedback-modal');
@@ -246,24 +274,15 @@
                 const messageEl = document.getElementById('modal-message');
 
                 messageEl.textContent = message;
-                if (type === 'success') {
-                    modal.classList.add('border-emerald-500');
-                    modal.classList.remove('border-red-500');
-                    iconContainer.innerHTML = `<i data-lucide="check-circle" class="text-emerald-500"></i>`;
-                } else {
-                    modal.classList.add('border-red-500');
-                    modal.classList.remove('border-emerald-500');
-                    iconContainer.innerHTML = `<i data-lucide="x-circle" class="text-red-500"></i>`;
-                }
+                modal.classList.toggle('border-emerald-500', type === 'success');
+                modal.classList.toggle('border-red-500', type !== 'success');
+                iconContainer.innerHTML = type === 'success' 
+                    ? `<i data-lucide="check-circle" class="text-emerald-500"></i>`
+                    : `<i data-lucide="x-circle" class="text-red-500"></i>`;
                 lucide.createIcons();
                 
                 modal.classList.remove('opacity-0', 'translate-y-2');
-                modal.classList.add('opacity-100', 'translate-y-0');
-
-                setTimeout(() => {
-                    modal.classList.add('opacity-0', 'translate-y-2');
-                    modal.classList.remove('opacity-100', 'translate-y-0');
-                }, 3000);
+                setTimeout(() => modal.classList.add('opacity-0', 'translate-y-2'), 3000);
             };
             
             // Função para buscar os dados da planilha
@@ -275,10 +294,8 @@
                 try {
                     const response = await fetch(SCRIPT_URL);
                     if (!response.ok) throw new Error('Erro ao buscar dados da planilha.');
-                    
                     const data = await response.json();
-                    mentions = data.sort((a, b) => new Date(b.date) - new Date(a.date)); // Ordena por data
-                    
+                    mentions = data.sort((a, b) => new Date(b.date) - new Date(a.date));
                     populateChannelFilter();
                     updateDashboard();
                 } catch (error) {
@@ -292,32 +309,62 @@
                 const channels = [...new Set(mentions.map(m => m.channel))];
                 filterChannel.innerHTML = '<option value="all">Todos</option>';
                 channels.sort().forEach(channel => {
-                    const option = document.createElement('option');
-                    option.value = channel;
-                    option.textContent = channel;
-                    filterChannel.appendChild(option);
+                    filterChannel.innerHTML += `<option value="${channel}">${channel}</option>`;
                 });
+            };
+            
+            // NOVO: Função para renderizar o feed de menções
+            const renderMentionsFeed = (data) => {
+                mentionsFeedContainer.innerHTML = '';
+                if (data.length === 0) {
+                    mentionsFeedContainer.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhuma menção para os filtros selecionados.</p>`;
+                    return;
+                }
+
+                const sentimentInfo = {
+                    'Positivo': { icon: 'thumbs-up', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                    'Negativo': { icon: 'thumbs-down', color: 'text-red-500', bg: 'bg-red-50' },
+                    'Neutro': { icon: 'message-circle', color: 'text-slate-500', bg: 'bg-slate-50' }
+                };
+
+                data.forEach(mention => {
+                    const s = sentimentInfo[mention.sentiment] || sentimentInfo['Neutro'];
+                    const formattedDate = new Date(mention.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                    const cardHTML = `
+                        <div class="p-3 rounded-lg border ${s.bg} flex gap-3 items-start">
+                            <div class="${s.color} mt-1 flex-shrink-0"><i data-lucide="${s.icon}" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="text-slate-800 text-sm break-words">"${mention.content}"</p>
+                                <div class="text-xs text-slate-500 mt-2 flex items-center gap-2 flex-wrap">
+                                    <span><a href="${mention.link}" target="_blank" class="hover:underline"><strong>${mention.channel}</strong></a></span>
+                                    <span class="text-slate-300">|</span>
+                                    <span>${formattedDate}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    mentionsFeedContainer.insertAdjacentHTML('beforeend', cardHTML);
+                });
+                lucide.createIcons();
             };
 
             // Função principal para atualizar o dashboard
             const updateDashboard = () => {
                 const channelFilterValue = filterChannel.value;
                 const sentimentFilterValue = filterSentiment.value;
-                const dateFilterValue = filterDate.value;
+                const selectedDates = datePicker.selectedDates;
 
                 let filteredMentions = mentions;
 
-                if (dateFilterValue !== 'all') {
-                    const days = parseInt(dateFilterValue);
-                    const cutoffDate = new Date();
-                    cutoffDate.setDate(cutoffDate.getDate() - days);
+                // Filtro de data
+                if (selectedDates.length === 2) {
+                    const [startDate, endDate] = selectedDates;
+                    endDate.setHours(23, 59, 59, 999);
                     filteredMentions = filteredMentions.filter(m => {
                         const mentionDate = new Date(m.date);
-                        // Ajusta a data para ignorar fuso horário
-                        mentionDate.setMinutes(mentionDate.getMinutes() + mentionDate.getTimezoneOffset());
-                        return mentionDate >= cutoffDate;
+                        return mentionDate >= startDate && mentionDate <= endDate;
                     });
                 }
+                
                 if (channelFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
                 if (sentimentFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
                 
@@ -326,57 +373,50 @@
 
                 if (total > 0) {
                     const positives = filteredMentions.filter(m => m.sentiment === 'Positivo').length;
-                    const negatives = filteredMentions.filter(m => m.sentiment === 'Negativo').length;
-                    const neutrals = filteredMentions.filter(m => m.sentiment === 'Neutro').length;
-                    
                     document.getElementById('kpi-positive').textContent = `${((positives / total) * 100).toFixed(0)}%`;
+                    const negatives = filteredMentions.filter(m => m.sentiment === 'Negativo').length;
                     document.getElementById('kpi-negative').textContent = `${((negatives / total) * 100).toFixed(0)}%`;
+                    const neutrals = total - positives - negatives;
                     document.getElementById('kpi-neutral').textContent = `${((neutrals / total) * 100).toFixed(0)}%`;
                 } else {
-                    document.getElementById('kpi-positive').textContent = '0%';
-                    document.getElementById('kpi-negative').textContent = '0%';
-                    document.getElementById('kpi-neutral').textContent = '0%';
+                    ['kpi-positive', 'kpi-negative', 'kpi-neutral'].forEach(id => document.getElementById(id).textContent = '0%');
                 }
 
                 updateSentimentChart(filteredMentions);
                 updateChannelChart(filteredMentions);
                 updateTopicChart(filteredMentions);
+                renderMentionsFeed(filteredMentions); // NOVO: Renderiza o feed
+            };
+
+            const updateChart = (chartInstance, elementId, type, data, options) => {
+                if (chartInstance) chartInstance.destroy();
+                const ctx = document.getElementById(elementId).getContext('2d');
+                return new Chart(ctx, { type, data, options });
             };
 
             const updateSentimentChart = (data) => {
-                const ctx = document.getElementById('sentiment-chart').getContext('2d');
-                const sentimentCounts = data.reduce((acc, m) => { acc[m.sentiment] = (acc[m.sentiment] || 0) + 1; return acc; }, {});
+                const counts = data.reduce((acc, m) => { acc[m.sentiment] = (acc[m.sentiment] || 0) + 1; return acc; }, {});
                 const chartData = {
-                    labels: Object.keys(sentimentCounts),
-                    datasets: [{ data: Object.values(sentimentCounts), backgroundColor: Object.keys(sentimentCounts).map(s => sentimentColors[s]), borderColor: '#fff', borderWidth: 2 }]
+                    labels: Object.keys(counts),
+                    datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(s => sentimentColors[s]), borderColor: '#fff', borderWidth: 2 }]
                 };
-                if (sentimentChart) sentimentChart.destroy();
-                sentimentChart = new Chart(ctx, { type: 'doughnut', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+                sentimentChart = updateChart(sentimentChart, 'sentiment-chart', 'doughnut', chartData, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
             };
             const updateChannelChart = (data) => {
-                const ctx = document.getElementById('channel-chart').getContext('2d');
-                const channelCounts = data.reduce((acc, m) => { acc[m.channel] = (acc[m.channel] || 0) + 1; return acc; }, {});
-                const chartData = { labels: Object.keys(channelCounts), datasets: [{ label: 'Menções', data: Object.values(channelCounts), backgroundColor: chartColors, borderRadius: 5 }] };
-                if (channelChart) channelChart.destroy();
-                channelChart = new Chart(ctx, { type: 'bar', data: chartData, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } } });
+                const counts = data.reduce((acc, m) => { acc[m.channel] = (acc[m.channel] || 0) + 1; return acc; }, {});
+                const chartData = { labels: Object.keys(counts), datasets: [{ label: 'Menções', data: Object.values(counts), backgroundColor: chartColors, borderRadius: 5 }] };
+                channelChart = updateChart(channelChart, 'channel-chart', 'bar', chartData, { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } });
             };
             const updateTopicChart = (data) => {
-                const ctx = document.getElementById('topic-chart').getContext('2d');
-                const topicCounts = data.reduce((acc, m) => { acc[m.topic] = (acc[m.topic] || 0) + 1; return acc; }, {});
-                const sortedTopics = Object.entries(topicCounts).sort(([,a],[,b]) => b-a);
-                const chartData = { labels: sortedTopics.map(item => item[0]), datasets: [{ label: 'Menções', data: sortedTopics.map(item => item[1]), backgroundColor: chartColors, borderRadius: 5, }] };
-                if (topicChart) topicChart.destroy();
-                topicChart = new Chart(ctx, { type: 'bar', data: chartData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+                const counts = data.reduce((acc, m) => { acc[m.topic] = (acc[m.topic] || 0) + 1; return acc; }, {});
+                const sorted = Object.entries(counts).sort(([,a],[,b]) => b-a);
+                const chartData = { labels: sorted.map(i => i[0]), datasets: [{ label: 'Menções', data: sorted.map(i => i[1]), backgroundColor: chartColors, borderRadius: 5 }] };
+                topicChart = updateChart(topicChart, 'topic-chart', 'bar', chartData, { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } });
             };
 
             // Event listener para o formulário
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                if (SCRIPT_URL === 'COLE_A_URL_DO_SEU_SCRIPT_AQUI') {
-                    showFeedback('Configure a URL do seu Apps Script!', 'error');
-                    return;
-                }
-
                 submitButton.disabled = true;
                 buttonText.classList.add('hidden');
                 buttonLoader.classList.remove('hidden');
@@ -386,22 +426,16 @@
                 newMention.id = Date.now();
 
                 try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors', // Essencial para evitar erros de CORS com Apps Script
-                        headers: { 'Content-Type': 'application/json' },
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newMention)
                     });
-                    
-                    // Com 'no-cors', não podemos ler a resposta, então assumimos sucesso se não houver erro de rede.
-                    // Adicionamos a menção localmente para feedback instantâneo na UI.
-                    mentions.unshift(newMention); // Adiciona no início
+                    mentions.unshift(newMention);
                     populateChannelFilter();
                     updateDashboard();
                     form.reset();
                     document.getElementById('date').valueAsDate = new Date();
                     showFeedback('Menção salva com sucesso!');
-
                 } catch (error) {
                     console.error('Falha ao salvar menção:', error);
                     showFeedback('Erro ao salvar. Tente novamente.', 'error');
@@ -413,16 +447,15 @@
             });
 
             // Event listeners para os filtros
-            [filterChannel, filterSentiment, filterDate].forEach(filter => {
+            [filterChannel, filterSentiment].forEach(filter => {
                 filter.addEventListener('change', updateDashboard);
             });
 
             // --- Inicialização da Aplicação ---
             document.getElementById('date').valueAsDate = new Date();
-            loadMentions(); // Carrega os dados da planilha ao iniciar
+            loadMentions();
         });
     </script>
 </body>
 </html>
-
 
