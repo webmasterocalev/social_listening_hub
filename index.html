@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Listening Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Cabeçalho -->
+        <header class="bg-white shadow-md sticky top-0 z-10">
+            <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-500 p-2 rounded-lg text-white">
+                        <svg class="lucide lucide-ear" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 6a6.5 6.5 0 0 0-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2.5 2.5 0 0 0 5 0V8.5Z"/></svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-slate-800">Social Listening Hub</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-grow container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Coluna do Formulário -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="text-indigo-500"></i>
+                    Adicionar Nova Menção
+                </h2>
+                <form id="mention-form" class="space-y-4">
+                    
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-slate-600 mb-1">Data</label>
+                        <input type="date" id="date" name="date" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+
+                    <div>
+                        <label for="channel" class="block text-sm font-medium text-slate-600 mb-1">Canal / Origem</label>
+                        <input type="text" id="channel" name="channel" placeholder="Ex: Instagram (Comentário), Blog X" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+
+                    <div>
+                        <label for="link" class="block text-sm font-medium text-slate-600 mb-1">Link</label>
+                        <input type="url" id="link" name="link" placeholder="https://..." required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    
+                    <div>
+                        <label for="sentiment" class="block text-sm font-medium text-slate-600 mb-1">Sentimento</label>
+                        <select id="sentiment" name="sentiment" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                            <option value="Positivo">Positivo</option>
+                            <option value="Negativo">Negativo</option>
+                            <option value="Neutro" selected>Neutro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="topic" class="block text-sm font-medium text-slate-600 mb-1">Tópico Principal</label>
+                        <select id="topic" name="topic" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                             <option>Atendimento</option>
+                             <option>Produto</option>
+                             <option>Preço</option>
+                             <option>Entrega</option>
+                             <option>Marketing/Campanha</option>
+                             <option>Sugestão</option>
+                             <option>Outro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="content" class="block text-sm font-medium text-slate-600 mb-1">Conteúdo / Resumo</label>
+                        <textarea id="content" name="content" rows="4" placeholder="O que foi dito?" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2">
+                        <i data-lucide="send"></i>
+                        Salvar Menção
+                    </button>
+                </form>
+            </div>
+
+            <!-- Coluna do Dashboard -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Filtros -->
+                 <div class="bg-white p-4 rounded-2xl shadow-lg">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2"><i data-lucide="filter" class="text-slate-500"></i>Filtros</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="filter-channel" class="block text-sm font-medium text-slate-600 mb-1">Canal</label>
+                            <select id="filter-channel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <option value="all">Todos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-sentiment" class="block text-sm font-medium text-slate-600 mb-1">Sentimento</label>
+                            <select id="filter-sentiment" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <option value="all">Todos</option>
+                                <option value="Positivo">Positivo</option>
+                                <option value="Negativo">Negativo</option>
+                                <option value="Neutro">Neutro</option>
+                            </select>
+                        </div>
+                         <div>
+                            <label for="filter-date" class="block text-sm font-medium text-slate-600 mb-1">Período</label>
+                            <select id="filter-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <option value="all">Todo o período</option>
+                                <option value="7">Últimos 7 dias</option>
+                                <option value="30">Últimos 30 dias</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Métricas Principais -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-lg text-center">
+                        <h4 class="text-sm font-medium text-slate-500">Total de Menções</h4>
+                        <p id="kpi-total" class="text-3xl font-bold text-indigo-600">0</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-lg text-center">
+                        <h4 class="text-sm font-medium text-slate-500">Positivas</h4>
+                        <p id="kpi-positive" class="text-3xl font-bold text-emerald-500">0%</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-lg text-center">
+                        <h4 class="text-sm font-medium text-slate-500">Negativas</h4>
+                        <p id="kpi-negative" class="text-3xl font-bold text-red-500">0%</p>
+                    </div>
+                     <div class="bg-white p-4 rounded-2xl shadow-lg text-center">
+                        <h4 class="text-sm font-medium text-slate-500">Neutras</h4>
+                        <p id="kpi-neutral" class="text-3xl font-bold text-slate-500">0%</p>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4">Sentimento Geral</h3>
+                        <div class="chart-container"><canvas id="sentiment-chart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-lg font-semibold mb-4">Menções por Canal</h3>
+                        <div class="chart-container"><canvas id="channel-chart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg md:col-span-2">
+                        <h3 class="text-lg font-semibold mb-4">Tópicos Mais Comentados</h3>
+                        <div class="chart-container"><canvas id="topic-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicialização dos ícones Lucide
+            lucide.createIcons();
+
+            // Referências aos elementos do DOM
+            const form = document.getElementById('mention-form');
+            const filterChannel = document.getElementById('filter-channel');
+            const filterSentiment = document.getElementById('filter-sentiment');
+            const filterDate = document.getElementById('filter-date');
+            
+            // Variáveis de estado e gráficos
+            let mentions = JSON.parse(localStorage.getItem('mentions')) || [];
+            let sentimentChart, channelChart, topicChart;
+
+            // Cores padrão para os gráficos
+            const sentimentColors = {
+                'Positivo': 'rgba(16, 185, 129, 0.7)', // emerald-500
+                'Negativo': 'rgba(239, 68, 68, 0.7)',   // red-500
+                'Neutro': 'rgba(100, 116, 139, 0.7)'  // slate-500
+            };
+            const chartColors = [
+                'rgba(99, 102, 241, 0.7)',  // indigo-500
+                'rgba(59, 130, 246, 0.7)',  // blue-500
+                'rgba(14, 165, 233, 0.7)', // sky-500
+                'rgba(34, 197, 94, 0.7)',  // green-500
+                'rgba(249, 115, 22, 0.7)',  // orange-500
+                'rgba(168, 85, 247, 0.7)', // purple-500
+            ];
+
+            // Função para salvar dados no localStorage
+            const saveMentions = () => {
+                localStorage.setItem('mentions', JSON.stringify(mentions));
+            };
+            
+            // Função para popular o filtro de canais dinamicamente
+            const populateChannelFilter = () => {
+                const channels = [...new Set(mentions.map(m => m.channel))];
+                filterChannel.innerHTML = '<option value="all">Todos</option>';
+                channels.sort().forEach(channel => {
+                    const option = document.createElement('option');
+                    option.value = channel;
+                    option.textContent = channel;
+                    filterChannel.appendChild(option);
+                });
+            };
+
+            // Função principal para atualizar o dashboard
+            const updateDashboard = () => {
+                // Aplica os filtros
+                const channelFilterValue = filterChannel.value;
+                const sentimentFilterValue = filterSentiment.value;
+                const dateFilterValue = filterDate.value;
+
+                let filteredMentions = mentions;
+
+                // Filtro por data
+                if (dateFilterValue !== 'all') {
+                    const days = parseInt(dateFilterValue);
+                    const cutoffDate = new Date();
+                    cutoffDate.setDate(cutoffDate.getDate() - days);
+                    filteredMentions = filteredMentions.filter(m => new Date(m.date) >= cutoffDate);
+                }
+
+                // Filtro por canal
+                if (channelFilterValue !== 'all') {
+                    filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
+                }
+                
+                // Filtro por sentimento
+                if (sentimentFilterValue !== 'all') {
+                    filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
+                }
+
+                // --- 1. Atualizar KPIs ---
+                const total = filteredMentions.length;
+                document.getElementById('kpi-total').textContent = total;
+
+                if (total > 0) {
+                    const positives = filteredMentions.filter(m => m.sentiment === 'Positivo').length;
+                    const negatives = filteredMentions.filter(m => m.sentiment === 'Negativo').length;
+                    const neutrals = filteredMentions.filter(m => m.sentiment === 'Neutro').length;
+                    
+                    document.getElementById('kpi-positive').textContent = `${((positives / total) * 100).toFixed(0)}%`;
+                    document.getElementById('kpi-negative').textContent = `${((negatives / total) * 100).toFixed(0)}%`;
+                    document.getElementById('kpi-neutral').textContent = `${((neutrals / total) * 100).toFixed(0)}%`;
+                } else {
+                    document.getElementById('kpi-positive').textContent = '0%';
+                    document.getElementById('kpi-negative').textContent = '0%';
+                    document.getElementById('kpi-neutral').textContent = '0%';
+                }
+
+                // --- 2. Atualizar Gráficos ---
+                updateSentimentChart(filteredMentions);
+                updateChannelChart(filteredMentions);
+                updateTopicChart(filteredMentions);
+            };
+
+            // Funções de atualização para cada gráfico
+            const updateSentimentChart = (data) => {
+                const ctx = document.getElementById('sentiment-chart').getContext('2d');
+                const sentimentCounts = data.reduce((acc, m) => {
+                    acc[m.sentiment] = (acc[m.sentiment] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const chartData = {
+                    labels: Object.keys(sentimentCounts),
+                    datasets: [{
+                        data: Object.values(sentimentCounts),
+                        backgroundColor: Object.keys(sentimentCounts).map(s => sentimentColors[s]),
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                };
+
+                if (sentimentChart) sentimentChart.destroy();
+                sentimentChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            };
+
+            const updateChannelChart = (data) => {
+                const ctx = document.getElementById('channel-chart').getContext('2d');
+                const channelCounts = data.reduce((acc, m) => {
+                    acc[m.channel] = (acc[m.channel] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const chartData = {
+                    labels: Object.keys(channelCounts),
+                    datasets: [{
+                        label: 'Menções',
+                        data: Object.values(channelCounts),
+                        backgroundColor: chartColors,
+                        borderRadius: 5
+                    }]
+                };
+                
+                if (channelChart) channelChart.destroy();
+                channelChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true } }
+                    }
+                });
+            };
+
+            const updateTopicChart = (data) => {
+                 const ctx = document.getElementById('topic-chart').getContext('2d');
+                const topicCounts = data.reduce((acc, m) => {
+                    acc[m.topic] = (acc[m.topic] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                const sortedTopics = Object.entries(topicCounts).sort(([,a],[,b]) => b-a);
+
+                const chartData = {
+                    labels: sortedTopics.map(item => item[0]),
+                    datasets: [{
+                        label: 'Menções',
+                        data: sortedTopics.map(item => item[1]),
+                        backgroundColor: chartColors,
+                        borderRadius: 5,
+                    }]
+                };
+                
+                if (topicChart) topicChart.destroy();
+                topicChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            };
+
+
+            // Event listener para o formulário
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const newMention = Object.fromEntries(formData.entries());
+                newMention.id = Date.now(); // ID único
+                
+                mentions.push(newMention);
+                saveMentions();
+                
+                form.reset();
+                // Seta a data de hoje por padrão no campo de data
+                document.getElementById('date').valueAsDate = new Date();
+                
+                // Atualiza o dashboard e os filtros
+                populateChannelFilter();
+                updateDashboard();
+            });
+
+            // Event listeners para os filtros
+            [filterChannel, filterSentiment, filterDate].forEach(filter => {
+                filter.addEventListener('change', updateDashboard);
+            });
+
+            // --- Inicialização da Aplicação ---
+            document.getElementById('date').valueAsDate = new Date();
+            populateChannelFilter();
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>
