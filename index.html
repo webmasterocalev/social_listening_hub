@@ -359,7 +359,8 @@
                 if (dateFilterValue !== 'all') {
                     const days = parseInt(dateFilterValue);
                     const today = new Date();
-                    const cutoffDate = new Date(today.setDate(today.getDate() - days));
+                    const cutoffDate = new Date();
+                    cutoffDate.setDate(today.getDate() - days);
                     
                     filteredMentions = filteredMentions.filter(m => {
                         const mentionDate = new Date(m.date);
@@ -424,20 +425,21 @@
                 buttonText.classList.add('hidden');
                 buttonLoader.classList.remove('hidden');
 
-                // ===== INÍCIO DA CORREÇÃO DO ENVIO DE DADOS =====
                 const formData = new FormData(form);
                 const newMention = Object.fromEntries(formData.entries());
                 newMention.id = Date.now();
                 
-                // Transforma o objeto em uma string de busca para ser enviada
-                const payload = new URLSearchParams(newMention);
-
                 try {
+                    // ===== INÍCIO DA CORREÇÃO DEFINITIVA =====
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: payload // Envia como 'application/x-www-form-urlencoded'
+                        mode: 'no-cors', // Essencial para evitar erros de CORS com Apps Script
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(newMention)
                     });
-                // ===== FIM DA CORREÇÃO DO ENVIO DE DADOS =====
+                    // ===== FIM DA CORREÇÃO DEFINITIVA =====
                     
                     mentions.unshift(newMention);
                     populateChannelFilter();
