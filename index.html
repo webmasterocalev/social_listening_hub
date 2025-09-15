@@ -376,32 +376,26 @@
 
                 let filteredMentions = mentions;
 
-                // Filtro de data (CORRIGIDO)
+                // ===== INÍCIO DA CORREÇÃO DO FILTRO DE DATA =====
                 if (selectedDates.length > 0) {
-                    const parseDateFromSheet = (dateString) => {
-                        const [year, month, day] = dateString.split('-').map(Number);
-                        return new Date(year, month - 1, day);
+                    const toYYYYMMDD = (date) => {
+                        const d = new Date(date);
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${y}-${m}-${day}`;
                     };
 
                     if (selectedDates.length === 1) {
-                        const [singleDate] = selectedDates;
-                        singleDate.setHours(0, 0, 0, 0);
-                        
-                        filteredMentions = filteredMentions.filter(m => {
-                            const mentionDate = parseDateFromSheet(m.date);
-                            return mentionDate.getTime() === singleDate.getTime();
-                        });
+                        const singleDateStr = toYYYYMMDD(selectedDates[0]);
+                        filteredMentions = filteredMentions.filter(m => m.date === singleDateStr);
                     } else { // selectedDates.length === 2
-                        const [startDate, endDate] = selectedDates;
-                        startDate.setHours(0, 0, 0, 0);
-                        endDate.setHours(23, 59, 59, 999);
-                        
-                        filteredMentions = filteredMentions.filter(m => {
-                            const mentionDate = parseDateFromSheet(m.date);
-                            return mentionDate >= startDate && mentionDate <= endDate;
-                        });
+                        const startDateStr = toYYYYMMDD(selectedDates[0]);
+                        const endDateStr = toYYYYMMDD(selectedDates[1]);
+                        filteredMentions = filteredMentions.filter(m => m.date >= startDateStr && m.date <= endDateStr);
                     }
                 }
+                // ===== FIM DA CORREÇÃO DO FILTRO DE DATA =====
                 
                 if (channelFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
                 if (sentimentFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
