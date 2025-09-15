@@ -81,7 +81,23 @@
 
                     <div>
                         <label for="channel" class="block text-sm font-medium text-slate-600 mb-1">Canal / Origem</label>
-                        <input type="text" id="channel" name="channel" placeholder="Ex: Instagram (Comentário), Blog X" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        <select id="channel" name="channel" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                            <option>Instagram (comentário)</option>
+                            <option>Instagram (DM)</option>
+                            <option>Facebook (comentário)</option>
+                            <option>Facebook (DM)</option>
+                            <option>TikTok (comentário)</option>
+                            <option>TikTok (DM)</option>
+                            <option>YouTube (comentário)</option>
+                            <option>Site / Blog</option>
+                            <option>LinkedIn</option>
+                            <option>Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="author" class="block text-sm font-medium text-slate-600 mb-1">Autor</label>
+                        <input type="text" id="author" name="author" placeholder="@usuario (opcional)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                     </div>
 
                     <div>
@@ -313,7 +329,7 @@
                 });
             };
             
-            // NOVO: Função para renderizar o feed de menções
+            // Função para renderizar o feed de menções
             const renderMentionsFeed = (data) => {
                 mentionsFeedContainer.innerHTML = '';
                 if (data.length === 0) {
@@ -330,6 +346,10 @@
                 data.forEach(mention => {
                     const s = sentimentInfo[mention.sentiment] || sentimentInfo['Neutro'];
                     const formattedDate = new Date(mention.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                    const authorHTML = mention.author ? `
+                        <span class="text-slate-300">|</span>
+                        <span>por <strong>${mention.author}</strong></span>` : '';
+
                     const cardHTML = `
                         <div class="p-3 rounded-lg border ${s.bg} flex gap-3 items-start">
                             <div class="${s.color} mt-1 flex-shrink-0"><i data-lucide="${s.icon}" class="w-5 h-5"></i></div>
@@ -339,6 +359,7 @@
                                     <span><a href="${mention.link}" target="_blank" class="hover:underline"><strong>${mention.channel}</strong></a></span>
                                     <span class="text-slate-300">|</span>
                                     <span>${formattedDate}</span>
+                                    ${authorHTML}
                                 </div>
                             </div>
                         </div>`;
@@ -355,14 +376,31 @@
 
                 let filteredMentions = mentions;
 
-                // Filtro de data
-                if (selectedDates.length === 2) {
-                    const [startDate, endDate] = selectedDates;
-                    endDate.setHours(23, 59, 59, 999);
-                    filteredMentions = filteredMentions.filter(m => {
-                        const mentionDate = new Date(m.date);
-                        return mentionDate >= startDate && mentionDate <= endDate;
-                    });
+                // Filtro de data (CORRIGIDO)
+                if (selectedDates.length > 0) {
+                    const parseDateFromSheet = (dateString) => {
+                        const [year, month, day] = dateString.split('-').map(Number);
+                        return new Date(year, month - 1, day);
+                    };
+
+                    if (selectedDates.length === 1) {
+                        const [singleDate] = selectedDates;
+                        singleDate.setHours(0, 0, 0, 0);
+                        
+                        filteredMentions = filteredMentions.filter(m => {
+                            const mentionDate = parseDateFromSheet(m.date);
+                            return mentionDate.getTime() === singleDate.getTime();
+                        });
+                    } else { // selectedDates.length === 2
+                        const [startDate, endDate] = selectedDates;
+                        startDate.setHours(0, 0, 0, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                        
+                        filteredMentions = filteredMentions.filter(m => {
+                            const mentionDate = parseDateFromSheet(m.date);
+                            return mentionDate >= startDate && mentionDate <= endDate;
+                        });
+                    }
                 }
                 
                 if (channelFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
@@ -385,7 +423,7 @@
                 updateSentimentChart(filteredMentions);
                 updateChannelChart(filteredMentions);
                 updateTopicChart(filteredMentions);
-                renderMentionsFeed(filteredMentions); // NOVO: Renderiza o feed
+                renderMentionsFeed(filteredMentions);
             };
 
             const updateChart = (chartInstance, elementId, type, data, options) => {
