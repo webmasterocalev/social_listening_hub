@@ -7,10 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Biblioteca do Calendário -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script> <!-- Tradução do calendário -->
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,9 +38,6 @@
         /* Estilo para o modal de feedback */
         .feedback-modal {
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-        }
-        .flatpickr-input {
-            cursor: pointer;
         }
     </style>
 </head>
@@ -117,13 +110,12 @@
                     <div>
                         <label for="topic" class="block text-sm font-medium text-slate-600 mb-1">Tópico Principal</label>
                         <select id="topic" name="topic" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                             <option>Atendimento</option>
-                             <option>Produto</option>
-                             <option>Preço</option>
-                             <option>Entrega</option>
-                             <option>Marketing/Campanha</option>
-                             <option>Sugestão</option>
-                             <option>Outro</option>
+                             <option>Dúvidas Técnicas</option>
+                             <option>Planos e Preços</option>
+                             <option>Campanhas Promocionais</option>
+                             <option>Reclamações</option>
+                             <option>Sugestões</option>
+                             <option>Elogios</option>
                         </select>
                     </div>
 
@@ -151,7 +143,7 @@
                 <!-- Filtros -->
                  <div class="bg-white p-4 rounded-2xl shadow-lg">
                     <h3 class="text-lg font-semibold mb-3 flex items-center gap-2"><i data-lucide="filter" class="text-slate-500"></i>Filtros</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label for="filter-channel" class="block text-sm font-medium text-slate-600 mb-1">Canal</label>
                             <select id="filter-channel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
@@ -167,14 +159,15 @@
                                 <option value="Neutro">Neutro</option>
                             </select>
                         </div>
-                         <div class="sm:col-span-2">
-                            <label for="filter-date-range" class="block text-sm font-medium text-slate-600 mb-1">Período</label>
-                             <div class="relative">
-                                <input type="text" id="filter-date-range" placeholder="Selecione um período..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                <button id="clear-date-filter" class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden">
-                                    <i data-lucide="x" class="w-4 h-4"></i>
-                                </button>
-                            </div>
+                         <div>
+                            <label for="filter-date" class="block text-sm font-medium text-slate-600 mb-1">Período</label>
+                            <select id="filter-date" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <option value="all">Todo o período</option>
+                                <option value="7">Últimos 7 dias</option>
+                                <option value="15">Últimos 15 dias</option>
+                                <option value="30">Últimos 30 dias</option>
+                                <option value="90">Últimos 90 dias</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -251,8 +244,7 @@
             const buttonLoader = document.getElementById('button-loader');
             const filterChannel = document.getElementById('filter-channel');
             const filterSentiment = document.getElementById('filter-sentiment');
-            const filterDateRange = document.getElementById('filter-date-range');
-            const clearDateFilterBtn = document.getElementById('clear-date-filter');
+            const filterDate = document.getElementById('filter-date');
             const mentionsFeedContainer = document.getElementById('mentions-feed');
             
             // Variáveis de estado e gráficos
@@ -269,21 +261,6 @@
                 'rgba(99, 102, 241, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(14, 165, 233, 0.7)',
                 'rgba(34, 197, 94, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(168, 85, 247, 0.7)',
             ];
-            
-            const datePicker = flatpickr(filterDateRange, {
-                mode: "range",
-                dateFormat: "d/m/Y",
-                locale: "pt",
-                onChange: function(selectedDates, dateStr, instance) {
-                    updateDashboard();
-                    clearDateFilterBtn.classList.toggle('hidden', selectedDates.length === 0);
-                }
-            });
-
-            clearDateFilterBtn.addEventListener('click', () => {
-                datePicker.clear();
-                updateDashboard();
-            });
 
             const showFeedback = (message, type = 'success') => {
                 const modal = document.getElementById('feedback-modal');
@@ -366,75 +343,32 @@
                 lucide.createIcons();
             };
 
-            // ===== FUNÇÃO CORRIGIDA PARA NORMALIZAR DATAS =====
-            const normalizeDate = (dateInput) => {
-                let date;
-                
-                // Se for um objeto Date do flatpickr
-                if (dateInput instanceof Date) {
-                    date = new Date(dateInput);
-                } 
-                // Se for string no formato YYYY-MM-DD (do input date)
-                else if (typeof dateInput === 'string' && dateInput.includes('-')) {
-                    date = new Date(dateInput + 'T00:00:00.000Z');
-                } 
-                // Outros formatos
-                else {
-                    date = new Date(dateInput);
-                }
-                
-                // Garante que estamos trabalhando apenas com a data (sem horário)
-                return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-            };
-
             const updateDashboard = () => {
                 const channelFilterValue = filterChannel.value;
                 const sentimentFilterValue = filterSentiment.value;
-                const selectedDates = datePicker.selectedDates;
+                const dateFilterValue = filterDate.value;
 
-                let filteredMentions = [...mentions]; // Cria uma cópia
+                let filteredMentions = mentions;
+                
+                if (dateFilterValue !== 'all') {
+                    const days = parseInt(dateFilterValue);
+                    const today = new Date();
+                    // Zera as horas para garantir que o dia de hoje seja contado corretamente
+                    today.setHours(0, 0, 0, 0); 
+                    
+                    const cutoffDate = new Date();
+                    cutoffDate.setDate(today.getDate() - (days -1)); // -1 para incluir o dia de hoje
+                    cutoffDate.setHours(0,0,0,0);
 
-              // ===== FUNÇÃO CORRIGIDA PARA NORMALIZAR DATAS =====
-const normalizeDate = (dateInput) => {
-    let date;
-    
-    if (dateInput instanceof Date) {
-        date = new Date(dateInput);
-    } else if (typeof dateInput === 'string' && dateInput.includes('-')) {
-        date = new Date(dateInput + 'T00:00:00.000Z'); // yyyy-mm-dd
-    } else {
-        date = new Date(dateInput);
-    }
-    
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-};
-
-const updateDashboard = () => {
-    const channelFilterValue = filterChannel.value;
-    const sentimentFilterValue = filterSentiment.value;
-    const selectedDates = datePicker.selectedDates;
-
-    let filteredMentions = [...mentions];
-
-    // ===== FILTRO DE DATA CORRIGIDO =====
-    if (selectedDates.length > 0) {
-        const startDate = normalizeDate(selectedDates[0]);
-        const endDate = selectedDates.length > 1 ? normalizeDate(selectedDates[1]) : startDate;
-
-        filteredMentions = filteredMentions.filter(mention => {
-            const mentionDate = normalizeDate(mention.date);
-            return mentionDate >= startDate && mentionDate <= endDate;
-        });
-    }
-
-    // Filtros de canal e sentimento
-    if (channelFilterValue !== 'all') {
-        filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
-    }
-    if (sentimentFilterValue !== 'all') {
-        filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
-    }                
-                console.log(`Total final após todos os filtros: ${filteredMentions.length}`);
+                    filteredMentions = filteredMentions.filter(m => {
+                        const mentionDate = new Date(m.date);
+                        mentionDate.setMinutes(mentionDate.getMinutes() + mentionDate.getTimezoneOffset());
+                        return mentionDate >= cutoffDate;
+                    });
+                }
+                
+                if (channelFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
+                if (sentimentFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
                 
                 const total = filteredMentions.length;
                 document.getElementById('kpi-total').textContent = total;
@@ -515,7 +449,7 @@ const updateDashboard = () => {
             });
 
             // Event listeners para os filtros
-            [filterChannel, filterSentiment].forEach(filter => {
+            [filterChannel, filterSentiment, filterDate].forEach(filter => {
                 filter.addEventListener('change', updateDashboard);
             });
 
@@ -526,3 +460,4 @@ const updateDashboard = () => {
     </script>
 </body>
 </html>
+
