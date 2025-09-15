@@ -110,12 +110,12 @@
                     <div>
                         <label for="topic" class="block text-sm font-medium text-slate-600 mb-1">Tópico Principal</label>
                         <select id="topic" name="topic" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                             <option>Dúvidas Técnicas</option>
-                             <option>Planos e Preços</option>
-                             <option>Campanhas Promocionais</option>
-                             <option>Reclamações</option>
-                             <option>Sugestões</option>
-                             <option>Elogios</option>
+                            <option>Dúvidas Técnicas</option>
+                            <option>Planos e Preços</option>
+                            <option>Campanhas Promocionais</option>
+                            <option>Reclamações</option>
+                            <option>Sugestões</option>
+                            <option>Elogios</option>
                         </select>
                     </div>
 
@@ -288,7 +288,13 @@
                     const response = await fetch(SCRIPT_URL);
                     if (!response.ok) throw new Error('Erro ao buscar dados da planilha.');
                     const data = await response.json();
-                    mentions = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    mentions = data.map(mention => {
+                        return {
+                           ...mention,
+                           author: mention.author || '' // Garante que o autor sempre seja uma string
+                        }
+                    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
                     populateChannelFilter();
                     updateDashboard();
                 } catch (error) {
@@ -308,7 +314,7 @@
             const renderMentionsFeed = (data) => {
                 mentionsFeedContainer.innerHTML = '';
                 if (data.length === 0) {
-                    mentionsFeedContainer.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhuma menção para os filtros selecionados.</p>`;
+                    mentionsFeedContainer.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhuma menção encontrada para os filtros selecionados.</p>`;
                     return;
                 }
 
@@ -353,13 +359,8 @@
                 if (dateFilterValue !== 'all') {
                     const days = parseInt(dateFilterValue);
                     const today = new Date();
-                    // Zera as horas para garantir que o dia de hoje seja contado corretamente
-                    today.setHours(0, 0, 0, 0); 
+                    const cutoffDate = new Date(today.setDate(today.getDate() - days));
                     
-                    const cutoffDate = new Date();
-                    cutoffDate.setDate(today.getDate() - (days -1)); // -1 para incluir o dia de hoje
-                    cutoffDate.setHours(0,0,0,0);
-
                     filteredMentions = filteredMentions.filter(m => {
                         const mentionDate = new Date(m.date);
                         mentionDate.setMinutes(mentionDate.getMinutes() + mentionDate.getTimezoneOffset());
@@ -423,15 +424,21 @@
                 buttonText.classList.add('hidden');
                 buttonLoader.classList.remove('hidden');
 
+                // ===== INÍCIO DA CORREÇÃO DO ENVIO DE DADOS =====
                 const formData = new FormData(form);
                 const newMention = Object.fromEntries(formData.entries());
                 newMention.id = Date.now();
+                
+                // Transforma o objeto em uma string de busca para ser enviada
+                const payload = new URLSearchParams(newMention);
 
                 try {
                     await fetch(SCRIPT_URL, {
-                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newMention)
+                        method: 'POST',
+                        body: payload // Envia como 'application/x-www-form-urlencoded'
                     });
+                // ===== FIM DA CORREÇÃO DO ENVIO DE DADOS =====
+                    
                     mentions.unshift(newMention);
                     populateChannelFilter();
                     updateDashboard();
