@@ -56,7 +56,7 @@
             <div class="container mx-auto px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="bg-indigo-500 p-2 rounded-lg text-white">
-                        <svg class="lucide lucide-ear" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 6a6.5 6.5 0 0 0-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2.5 2.5 0 0 0 5 0V8.5Z"/></svg>
+                        <svg class="lucide lucide-ear" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 6a6.5 6.5 0 0 0-7 0"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2.5 2.5 0 0 0 5 0V8.5Z"/></svg>
                     </div>
                     <h1 class="text-2xl font-bold text-slate-800">Social Listening Hub</h1>
                 </div>
@@ -270,9 +270,8 @@
                 'rgba(34, 197, 94, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(168, 85, 247, 0.7)',
             ];
             
-            // ===== INÍCIO DA CORREÇÃO DO CALENDÁRIO =====
             const datePicker = flatpickr(filterDateRange, {
-                mode: "range", // Alterado para "range" para uma experiência de período nativa
+                mode: "range",
                 dateFormat: "d/m/Y",
                 locale: "pt",
                 onChange: function(selectedDates, dateStr, instance) {
@@ -280,7 +279,6 @@
                     clearDateFilterBtn.classList.toggle('hidden', selectedDates.length === 0);
                 }
             });
-            // ===== FIM DA CORREÇÃO DO CALENDÁRIO =====
 
             clearDateFilterBtn.addEventListener('click', () => datePicker.clear());
 
@@ -372,7 +370,7 @@
 
                 let filteredMentions = mentions;
 
-                // ===== INÍCIO DA CORREÇÃO FINAL DO FILTRO DE DATA =====
+                // ===== INÍCIO DA CORREÇÃO DEFINITIVA DO FILTRO DE DATA =====
                 if (selectedDates.length > 0) {
                     const getDayTimestamp = (dateInput) => {
                         if (typeof dateInput === 'string' && dateInput.includes('-')) {
@@ -382,20 +380,19 @@
                         const d = new Date(dateInput);
                         return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
                     };
-
-                    // O modo "range" garante que sempre teremos 0 ou 2 datas.
-                    // Se apenas uma for selecionada, a data de fim é igual à de início.
-                    if (selectedDates.length === 2) { 
-                        const startTimestamp = getDayTimestamp(selectedDates[0]);
-                        const endTimestamp = getDayTimestamp(selectedDates[1]);
-                        
-                        filteredMentions = filteredMentions.filter(m => {
-                            const mentionTimestamp = getDayTimestamp(m.date);
-                            return mentionTimestamp >= startTimestamp && mentionTimestamp <= endTimestamp;
-                        });
-                    }
+                    
+                    // Lógica para data única ou range
+                    // Se o usuário selecionou apenas uma data, o flatpickr em modo 'range'
+                    // armazena essa data como início e fim.
+                    const startTimestamp = getDayTimestamp(selectedDates[0]);
+                    const endTimestamp = selectedDates.length > 1 ? getDayTimestamp(selectedDates[1]) : startTimestamp;
+                    
+                    filteredMentions = filteredMentions.filter(m => {
+                        const mentionTimestamp = getDayTimestamp(m.date);
+                        return mentionTimestamp >= startTimestamp && mentionTimestamp <= endTimestamp;
+                    });
                 }
-                // ===== FIM DA CORREÇÃO FINAL DO FILTRO DE DATA =====
+                // ===== FIM DA CORREÇÃO DEFINITIVA DO FILTRO DE DATA =====
                 
                 if (channelFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.channel === channelFilterValue);
                 if (sentimentFilterValue !== 'all') filteredMentions = filteredMentions.filter(m => m.sentiment === sentimentFilterValue);
