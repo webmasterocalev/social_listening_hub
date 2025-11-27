@@ -124,67 +124,32 @@
         .visible-field { display: block; animation: fadeIn 0.3s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .ranking-item {
-            transition: all 0.2s ease;
-            cursor: pointer; 
-        }
-        .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateX(5px);
-        }
-        .ranking-item.selected {
-            background: rgba(255, 107, 91, 0.15); 
-            border-color: #FF6B5B; 
-            transform: translateX(5px);
-        }
+        .ranking-item { transition: all 0.2s ease; cursor: pointer; }
+        .ranking-item:hover { background: rgba(255, 255, 255, 0.05); transform: translateX(5px); }
+        .ranking-item.selected { background: rgba(255, 107, 91, 0.15); border-color: #FF6B5B; transform: translateX(5px); }
 
         #app-loader {
-            position: fixed;
-            inset: 0;
-            background-color: #0f0f0f;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: fixed; inset: 0; background-color: #0f0f0f; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
         }
-        
         .loader-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 107, 91, 0.1);
-            border-top-color: #FF6B5B;
+            width: 80px; height: 80px; border-radius: 50%;
+            border: 2px solid rgba(255, 107, 91, 0.1); border-top-color: #FF6B5B;
             animation: spin 1s infinite linear;
-            box-shadow: 0 0 15px rgba(255, 107, 91, 0.2);
-            position: relative;
+            box-shadow: 0 0 15px rgba(255, 107, 91, 0.2); position: relative;
         }
-        
         .loader-logo {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulse 2s infinite ease-in-out;
+            position: absolute; width: 40px; height: 40px; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); animation: pulse 2s infinite ease-in-out;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; transform: scale(0.95) translate(-50%, -50%); } 50% { opacity: 1; transform: scale(1.05) translate(-50%, -50%); } }
+        .loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
-        }
-        
-        .loader-hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
+        /* Barra de Progresso do Upload */
+        .progress-container { width: 100%; background-color: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 10px; overflow: hidden; height: 6px; }
+        .progress-bar { height: 100%; background-color: #FF6B5B; width: 0%; transition: width 0.3s ease; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white overflow-hidden">
@@ -231,8 +196,6 @@
                         <label for="date" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Data</label>
                         <input type="date" id="date" name="date" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
                     </div>
-                    
-                    <!-- LISTA DE CANAIS SIMPLIFICADA -->
                     <div>
                         <label for="channel" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Plataforma / Canal</label>
                         <select id="channel" name="channel" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
@@ -245,7 +208,6 @@
                             <option>Outro</option>
                         </select>
                     </div>
-
                     <div>
                         <label for="user" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Usuário / Perfil (@)</label>
                         <div class="relative">
@@ -255,13 +217,10 @@
                             <input type="text" id="user" name="user" placeholder="@usuario ou Nome" class="w-full pl-10 px-4 py-3 rounded-xl outline-none transition-all placeholder-white/20">
                         </div>
                     </div>
-
                     <div>
                         <label for="link" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Link</label>
                         <input type="url" id="link" name="link" placeholder="https://..." required class="w-full px-4 py-3 rounded-xl outline-none transition-all placeholder-white/20">
                     </div>
-                    
-                    <!-- LISTA DE TIPOS EXPANDIDA -->
                     <div>
                         <label for="type" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Tipo de Interação</label>
                         <select id="type" name="type" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
@@ -271,7 +230,6 @@
                             <option value="Reação">❤️ Reação / Like</option>
                         </select>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="sentiment" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Sentimento</label>
@@ -294,6 +252,7 @@
                                 <option>Geral</option>
                                 <option>Stories</option>
                                 <option>Marcação</option>
+                                <option value="Engajamento">Engajamento</option> <!-- Novo Tópico -->
                             </select>
                         </div>
                     </div>
@@ -301,6 +260,7 @@
                         <label for="content" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Conteúdo / Resumo</label>
                         <textarea id="content" name="content" rows="4" placeholder="O que foi dito?" class="w-full px-4 py-3 rounded-xl outline-none transition-all placeholder-white/20"></textarea>
                     </div>
+                    
                     <button type="submit" id="submit-button" class="w-full bg-gradient-to-r from-brand-primary to-brand-dark text-white font-bold py-4 px-4 rounded-xl hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-primary/30 transition-all duration-300 ease-in-out transform hover:scale-[1.02] shadow-glow flex items-center justify-center gap-2 mt-2 border border-white/10">
                         <span id="button-text" class="flex items-center gap-2">
                             <i data-lucide="send" class="w-4 h-4"></i> Registrar Dado
@@ -312,12 +272,29 @@
                             </svg>
                         </span>
                     </button>
+
+                    <!-- ÁREA DE IMPORTAÇÃO -->
+                    <div class="pt-4 border-t border-white/5 mt-4">
+                        <input type="file" id="csv-file" accept=".csv" class="hidden">
+                        <button type="button" id="import-button" class="w-full bg-transparent border border-dashed border-white/30 text-white/60 hover:text-white hover:border-brand-primary hover:bg-brand-primary/10 font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                            <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importar Curtidas (CSV)
+                        </button>
+                        <div id="import-status" class="hidden mt-2">
+                            <div class="flex justify-between text-xs text-white/60 mb-1">
+                                <span id="import-msg">Processando...</span>
+                                <span id="import-count">0%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div id="progress-bar" class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
 
-            <!-- Dashboard -->
+            <!-- Dashboard (Conteúdo Igual ao anterior) -->
             <div class="lg:col-span-8 flex flex-col gap-6">
-                
+                <!-- (Filtros, KPIs, Gráficos e Feed mantidos iguais...) -->
                 <!-- Filtros -->
                  <div class="bento-card p-4 flex flex-col xl:flex-row gap-4 items-center justify-between border-l-4 border-l-brand-primary/50">
                     <div class="flex items-center gap-2 text-white/60 px-2 min-w-fit">
@@ -373,11 +350,9 @@
                     </div>
                 </div>
 
-                <!-- NOVA LINHA: Métricas de Engajamento & Ranking -->
+                <!-- Métricas de Engajamento & Ranking -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full lg:h-64">
-                    <!-- Coluna da Esquerda: Stories e Reações (Empilhados) -->
                     <div class="lg:col-span-1 flex flex-col gap-4">
-                        <!-- Stories Card -->
                         <div class="bento-card p-5 flex items-center justify-between flex-1 relative overflow-hidden group">
                             <div class="absolute right-[-10px] bottom-[-10px] opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity rotate-12">
                                 <i data-lucide="camera" class="w-24 h-24 text-white"></i>
@@ -390,7 +365,6 @@
                                 <i data-lucide="instagram" class="w-6 h-6"></i>
                             </div>
                         </div>
-                        <!-- Reações Card -->
                         <div class="bento-card p-5 flex items-center justify-between flex-1 relative overflow-hidden group">
                             <div class="absolute right-[-10px] bottom-[-10px] opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity rotate-12">
                                 <i data-lucide="heart" class="w-24 h-24 text-red-500"></i>
@@ -405,28 +379,24 @@
                         </div>
                     </div>
 
-                    <!-- Coluna da Direita: Ranking de Usuários (Ocupa 2 colunas) -->
                     <div class="lg:col-span-2 bento-card p-5 flex flex-col overflow-hidden">
                         <div class="flex justify-between items-center border-b border-white/5 pb-3 mb-2">
                             <h3 class="text-sm font-bold text-white/90 uppercase tracking-widest flex items-center gap-2" id="ranking-title">
                                 <i data-lucide="trophy" class="w-4 h-4 text-brand-yellow"></i>
                                 Top Users
                             </h3>
-                            <!-- Botão Limpar (Escondido por padrão) -->
                             <button id="clear-user-filter" class="hidden text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition">
                                 <i data-lucide="x" class="w-3 h-3"></i> Limpar
                             </button>
                         </div>
                         <div id="ranking-list" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2">
-                            <!-- Lista gerada via JS -->
                             <p class="text-white/30 text-xs italic p-2">Sem dados para ranking.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Gráficos -->
+                <!-- Gráficos e Nuvem -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Sentiment Chart -->
                     <div class="bento-card p-6">
                         <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest border-l-2 border-brand-green pl-3 flex justify-between items-center">
                             Sentimento Geral
@@ -434,7 +404,6 @@
                         </h3>
                         <div class="chart-container"><canvas id="sentiment-chart"></canvas></div>
                     </div>
-                    <!-- Channel Chart -->
                     <div class="bento-card p-6">
                         <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest border-l-2 border-brand-primary pl-3 flex justify-between items-center">
                             Por Canal
@@ -443,7 +412,6 @@
                         <div class="chart-container"><canvas id="channel-chart"></canvas></div>
                     </div>
                     
-                    <!-- Tópicos em Alta -->
                     <div class="bento-card p-6">
                         <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest border-l-2 border-brand-yellow pl-3 flex justify-between items-center">
                             Tópicos em Alta
@@ -452,7 +420,6 @@
                         <div class="chart-container"><canvas id="topic-chart"></canvas></div>
                     </div>
 
-                    <!-- Nuvem de Palavras -->
                     <div class="bento-card p-6 relative overflow-hidden border border-brand-neon/30 shadow-neon">
                          <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                             <i data-lucide="sparkles" class="w-24 h-24 text-brand-neon"></i>
@@ -468,7 +435,7 @@
                     </div>
                 </div>
 
-                <!-- Feed de Menções (Apenas Texto) -->
+                <!-- Feed de Menções -->
                 <div class="bento-card p-6">
                     <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest flex items-center gap-2">
                         <i data-lucide="message-square-text" class="text-white/40 w-4 h-4"></i>
@@ -499,7 +466,6 @@
 
             lucide.createIcons();
 
-            // Elementos
             const appLoader = document.getElementById('app-loader');
             const appContainer = document.getElementById('app');
             const body = document.body;
@@ -512,24 +478,29 @@
             const contentContainer = document.getElementById('content-container');
             const contentField = document.getElementById('content');
             
-            // Filtros
+            // Import Elements
+            const csvFile = document.getElementById('csv-file');
+            const importButton = document.getElementById('import-button');
+            const importStatus = document.getElementById('import-status');
+            const progressBar = document.getElementById('progress-bar');
+            const importMsg = document.getElementById('import-msg');
+            const importCount = document.getElementById('import-count');
+
+            // Filtros e Containers (Mantidos)
             const filterChannel = document.getElementById('filter-channel');
             const filterSentiment = document.getElementById('filter-sentiment');
             const filterDateStart = document.getElementById('filter-date-start');
             const filterDateEnd = document.getElementById('filter-date-end');
-            
             const mentionsFeedContainer = document.getElementById('mentions-feed');
             const rankingContainer = document.getElementById('ranking-list');
             const rankingTitle = document.getElementById('ranking-title');
             const clearUserFilterBtn = document.getElementById('clear-user-filter');
             
-            // Estado
             let mentions = [];
             let selectedUser = null; 
             let sentimentChart, channelChart, topicChart; 
 
             const sentimentColors = { 'Positivo': '#00E676', 'Negativo': '#FF6B5B', 'Neutro': '#555555' };
-            const chartColors = ['#FF6B5B', '#FF8A75', '#FFA590', '#FFC0AD', '#E0E0E0', '#BDBDBD'];
             const stopWords = new Set(['de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por', 'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou', 'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela', 'até', 'isso', 'ela', 'entre', 'era', 'depois', 'sem', 'mesmo', 'aos', 'ter', 'seus', 'quem', 'nas', 'me', 'esse', 'eles', 'estão', 'você', 'tinha', 'foram', 'essa', 'num', 'nem', 'suas', 'meu', 'às', 'minha', 'têm', 'numa', 'pelos', 'elas', 'havia', 'seja', 'qual', 'será', 'nós', 'tenho', 'lhe', 'deles', 'essas', 'esses', 'pelas', 'este', 'fosse', 'dele', 'tu', 'te', 'vocês', 'vos', 'lhes', 'meus', 'minhas', 'teu', 'tua', 'teus', 'tuas', 'nosso', 'nossa', 'nossos', 'nossas', 'dela', 'delas', 'esta', 'estes', 'estas', 'aquele', 'aquela', 'aqueles', 'aquelas', 'isto', 'aquilo', 'estou', 'pra', 'pro', 'tá', 'né', 'sim', 'vai', 'pode', 'sobre', 'bem', 'bom', 'mal', 'ruim', 'ver', 'tmb', 'vc', 'pq', 'app', 'sou', 'veiculares', 'porem', 'porém', 'veicular', 'dia', 'hoje', 'agora', 'fazer', 'tudo', 'nada']);
 
             const showFeedback = (message, type = 'success') => {
@@ -545,12 +516,121 @@
                 setTimeout(() => modal.classList.add('opacity-0', 'translate-y-2'), 3000);
             };
             
-            // Funcao para esconder o loader
             const hideLoader = () => {
                 appLoader.classList.add('loader-hidden');
                 appContainer.classList.remove('opacity-0');
                 body.classList.remove('overflow-hidden'); 
             };
+
+            // Lógica de Botão de Importar CSV
+            importButton.addEventListener('click', () => csvFile.click());
+
+            csvFile.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                importStatus.classList.remove('hidden');
+                importButton.disabled = true;
+                
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const text = e.target.result;
+                    await processCSV(text);
+                };
+                reader.readAsText(file);
+            });
+
+            async function processCSV(csvText) {
+                // Assume que não tem cabeçalho, ou se tiver, precisa pular.
+                // O formato esperado é: DATA, CANAL, USUARIO, LINK
+                const rows = csvText.split('\n');
+                let toImport = [];
+                
+                // Preparar índice de duplicidade com dados atuais
+                const existingIndex = new Set(mentions.map(m => `${(m.user||'').toLowerCase()}|${(m.link||'').trim()}|Reação`));
+
+                // Parsear CSV
+                rows.forEach(row => {
+                    // Ignora linhas vazias
+                    if (!row.trim()) return;
+                    
+                    // CSV split simples (assumindo que não há vírgulas dentro dos campos nesse caso específico)
+                    const cols = row.split(',');
+                    if (cols.length < 4) return; 
+
+                    const date = cols[0].trim();
+                    const channel = cols[1].trim();
+                    const user = cols[2].trim().replace('@', ''); // Limpa @ se tiver
+                    const link = cols[3].trim();
+
+                    // Se for cabeçalho (Data, Canal...), ignora
+                    if (date.toLowerCase().includes('data') && link.toLowerCase().includes('link')) return;
+
+                    // Checa duplicidade
+                    const key = `${user.toLowerCase()}|${link}|Reação`;
+                    if (!existingIndex.has(key)) {
+                        toImport.push({
+                            date: date,
+                            channel: channel,
+                            user: user,
+                            link: link,
+                            type: 'Reação',
+                            sentiment: 'Positivo',
+                            topic: 'Engajamento',
+                            content: '(Reação / Like)',
+                            id: Date.now() + Math.random() // ID temporário
+                        });
+                        existingIndex.add(key); // Adiciona ao índice para evitar duplicados no próprio CSV
+                    }
+                });
+
+                if (toImport.length === 0) {
+                    showFeedback('Nenhuma curtida nova encontrada.', 'error');
+                    resetImportUI();
+                    return;
+                }
+
+                // Enviar em Fila (Um por um para não sobrecarregar)
+                importMsg.textContent = `Importando ${toImport.length} curtidas...`;
+                
+                for (let i = 0; i < toImport.length; i++) {
+                    const item = toImport[i];
+                    try {
+                        await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            redirect: 'follow',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(item)
+                        });
+                        
+                        // Atualiza localmente
+                        mentions.unshift(item);
+                        
+                        // Atualiza barra
+                        const percent = Math.round(((i + 1) / toImport.length) * 100);
+                        progressBar.style.width = `${percent}%`;
+                        importCount.textContent = `${percent}%`;
+                        
+                    } catch (err) {
+                        console.error('Erro ao importar item', item, err);
+                    }
+                }
+
+                // Finalização
+                updateDashboard();
+                populateChannelFilter();
+                showFeedback(`${toImport.length} curtidas importadas com sucesso!`);
+                resetImportUI();
+            }
+
+            function resetImportUI() {
+                importStatus.classList.add('hidden');
+                importButton.disabled = false;
+                progressBar.style.width = '0%';
+                importCount.textContent = '0%';
+                csvFile.value = ''; // Limpa input
+            }
 
             typeField.addEventListener('change', () => {
                 const val = typeField.value;
@@ -571,20 +651,12 @@
                     if (!response.ok) throw new Error('Erro API');
                     const data = await response.json();
                     
-                    // NORMALIZAÇÃO DE DADOS ANTIGOS (O Pulo do Gato 🐱)
-                    // Isso garante que "Instagram (comentário)" vire apenas "Instagram" nos gráficos
+                    // Normalização
                     mentions = data.map(m => {
-                        // Se tiver parênteses no canal, remove! 
-                        // Ex: "Instagram (DM)" vira "Instagram"
                         if (m.channel && m.channel.includes('(')) {
                             m.channel = m.channel.split(' (')[0].trim();
                         }
-                        
-                        // Se o Tipo estiver vazio (dados antigos), tenta adivinhar ou define como "Comentário"
-                        if (!m.type) {
-                            m.type = 'Comentário'; // Default legado
-                        }
-                        
+                        if (!m.type) { m.type = 'Comentário'; }
                         return m;
                     }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -606,7 +678,6 @@
             
             const renderMentionsFeed = (data) => {
                 mentionsFeedContainer.innerHTML = '';
-                // Mostra Comentário e DM no feed de texto
                 const textMentions = data.filter(m => m.type === 'Comentário' || m.type === 'DM' || m.type === 'Texto');
                 
                 if (textMentions.length === 0) {
@@ -624,7 +695,6 @@
                     const s = sentimentInfo[mention.sentiment] || sentimentInfo['Neutro'];
                     const formattedDate = new Date(mention.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
                     const userName = mention.user ? mention.user : "Anônimo";
-                    // Badge de Tipo (Comentário ou DM)
                     const typeBadge = mention.type ? mention.type : "Texto";
 
                     const cardHTML = `
@@ -652,11 +722,7 @@
             };
 
             window.toggleUserFilter = (user) => {
-                if (selectedUser === user) {
-                    selectedUser = null; 
-                } else {
-                    selectedUser = user;
-                }
+                if (selectedUser === user) { selectedUser = null; } else { selectedUser = user; }
                 updateDashboard();
             };
 
@@ -705,8 +771,6 @@
             const updateWordCloud = (data) => {
                 const canvas = document.getElementById('word-cloud-canvas');
                 const emptyMsg = document.getElementById('empty-cloud-msg');
-                
-                // Filtra apenas textos reais (Comentário ou DM ou Texto genérico)
                 const textOnly = data.filter(m => m.type === 'Comentário' || m.type === 'DM' || m.type === 'Texto');
                 
                 let text = textOnly.map(m => m.content || "").join(' ').toLowerCase();
