@@ -11,9 +11,6 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- WordCloud2.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
-    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -38,18 +35,34 @@
                   green: '#00E676',   // Verde Tech
                   yellow: '#FFC107',  // Kayva Yellow
                   neon: '#E879F9',    // Rosa Neon
+                  gold: '#FFD700',    // Ouro para Ranking
                 },
                 noir: {
-                  base: '#121212',
-                  surface: '#1E1E1E',
-                  text: '#F0F0F0',
-                  muted: '#A0A0A0',
+                  base: '#0A0A0A',    // Fundo mais profundo
+                  surface: '#18181B', // Superfície dos cards
+                  highlight: '#27272A',
+                  text: '#FAFAFA',
+                  muted: '#A1A1AA',
                 }
               },
               boxShadow: {
-                'glow': '0 0 20px rgba(255, 107, 91, 0.15)',
-                'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                'neon': '0 0 15px rgba(232, 121, 249, 0.4)',
+                'glow': '0 0 20px rgba(255, 107, 91, 0.10)',
+                'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
+              },
+              animation: {
+                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'fade-in': 'fadeIn 0.6s ease-out forwards',
+                'slide-out': 'slideOut 0.4s ease-in forwards',
+              },
+              keyframes: {
+                fadeIn: {
+                  '0%': { opacity: '0', transform: 'translateY(15px)' },
+                  '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                slideOut: {
+                  '0%': { opacity: '1', transform: 'translateX(0)' },
+                  '100%': { opacity: '0', transform: 'translateX(20px)' },
+                }
               }
             }
           }
@@ -59,455 +72,555 @@
     <style>
         * { font-family: 'Switzer', sans-serif !important; }
         body {
-            background-color: #0f0f0f;
-            color: #F0F0F0;
+            background-color: #0A0A0A;
+            color: #FAFAFA;
             min-height: 100vh;
             background-image: 
-                radial-gradient(circle at 0% 0%, rgba(255, 107, 91, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(100, 20, 20, 0.2) 0%, transparent 50%);
+                radial-gradient(circle at 15% 0%, rgba(255, 107, 91, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 100%, rgba(100, 20, 20, 0.15) 0%, transparent 40%);
             background-attachment: fixed;
         }
+        
         .bento-card {
-            background: rgba(30, 30, 30, 0.40);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.5rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            background: rgba(24, 24, 27, 0.6); 
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1.25rem; 
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.3s ease, transform 0.3s ease;
         }
+        
         .bento-card:hover {
-            border-color: rgba(255, 107, 91, 0.3);
-            background: rgba(30, 30, 30, 0.50);
-            transform: translateY(-2px);
+            border-color: rgba(255, 107, 91, 0.15);
         }
+
+        /* Inputs estilizados */
         input, select, textarea {
-            background: rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(4px);
-            color: #F0F0F0 !important;
+            background: rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: #FAFAFA !important;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
         input:focus, select:focus, textarea:focus {
             border-color: #FF6B5B !important;
-            background: rgba(0, 0, 0, 0.5) !important;
-            box-shadow: 0 0 0 2px rgba(255, 107, 91, 0.2);
+            background: rgba(0, 0, 0, 0.4) !important;
+            box-shadow: 0 0 0 1px rgba(255, 107, 91, 0.2);
+            outline: none;
         }
-        select option { background-color: #1E1E1E; color: #F0F0F0; padding: 10px; }
-        .chart-container { position: relative; height: 280px; width: 100%; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #FF6B5B; }
-        #word-cloud-canvas { filter: drop-shadow(0 0 4px rgba(232, 121, 249, 0.7)); }
-        ::-webkit-calendar-picker-indicator {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23FF6B5B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            filter: none;
-            opacity: 1;
-            cursor: pointer;
-            width: 20px;
-            height: 20px;
-            margin-left: 8px;
-            transition: transform 0.2s ease;
-        }
-        ::-webkit-calendar-picker-indicator:hover { transform: scale(1.1); filter: drop-shadow(0 0 5px rgba(255, 107, 91, 0.8)); }
-        .feedback-modal {
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            background: rgba(30, 30, 30, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #F0F0F0;
-        }
-        .hidden-field { display: none; opacity: 0; transform: translateY(-10px); }
-        .visible-field { display: block; animation: fadeIn 0.3s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .ranking-item { transition: all 0.2s ease; cursor: pointer; }
-        .ranking-item:hover { background: rgba(255, 255, 255, 0.05); transform: translateX(5px); }
-        .ranking-item.selected { background: rgba(255, 107, 91, 0.15); border-color: #FF6B5B; transform: translateX(5px); }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
+        }
 
-        #app-loader {
-            position: fixed; inset: 0; background-color: #0f0f0f; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        .chart-container { position: relative; width: 100%; flex-grow: 1; min-height: 180px; }
+        
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF6B5B; }
+        
+        /* Nav Button com Badge Relativo */
+        .nav-btn {
+            @apply relative px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 border border-transparent text-noir-muted hover:text-white hover:bg-white/5;
         }
-        .loader-circle {
-            width: 80px; height: 80px; border-radius: 50%;
-            border: 2px solid rgba(255, 107, 91, 0.1); border-top-color: #FF6B5B;
-            animation: spin 1s infinite linear;
-            box-shadow: 0 0 15px rgba(255, 107, 91, 0.2); position: relative;
+        .nav-btn.active {
+            @apply text-brand-primary bg-brand-primary/10 border-brand-primary/20 shadow-glow;
         }
-        .loader-logo {
-            position: absolute; width: 40px; height: 40px; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); animation: pulse 2s infinite ease-in-out;
+
+        /* Badge Flutuante */
+        .nav-badge {
+            @apply absolute -top-1 -right-1 bg-brand-primary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-sm border border-black;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 0.6; transform: scale(0.95) translate(-50%, -50%); } 50% { opacity: 1; transform: scale(1.05) translate(-50%, -50%); } }
+
+        .view-section { display: none; animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view-section.active { display: flex; flex-direction: column; }
+
+        /* Loader Ajustado */
+        #app-loader { position: fixed; inset: 0; background-color: #0A0A0A; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-container { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+        .loader-circle { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 107, 91, 0.1); border-top-color: #FF6B5B; animation: spin 1s infinite linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .ranking-gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
 
-        /* Barra de Progresso do Upload */
-        .progress-container { width: 100%; background-color: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 10px; overflow: hidden; height: 6px; }
-        .progress-bar { height: 100%; background-color: #FF6B5B; width: 0%; transition: width 0.3s ease; }
+        .sentiment-btn-sm {
+            @apply p-2 rounded-lg border border-white/5 bg-white/5 text-noir-muted transition hover:bg-white/10 flex items-center justify-center;
+        }
+        .sentiment-btn-sm.active-pos { @apply bg-brand-green/20 text-brand-green border-brand-green/50; }
+        .sentiment-btn-sm.active-neg { @apply bg-brand-primary/20 text-brand-primary border-brand-primary/50; }
+        .sentiment-btn-sm.active-neu { @apply bg-white/20 text-white border-white/30; }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col selection:bg-brand-primary selection:text-white overflow-hidden">
+<body class="antialiased min-h-screen flex flex-col overflow-x-hidden selection:bg-brand-primary selection:text-white">
 
-    <!-- TELA DE CARREGAMENTO -->
+    <!-- LOADER -->
     <div id="app-loader">
-        <div class="relative w-24 h-24 flex items-center justify-center mb-6">
-            <div class="loader-circle absolute inset-0 w-full h-full"></div>
-            <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" class="loader-logo object-contain" alt="Carregando...">
+        <div class="loader-container">
+            <div class="loader-circle"></div>
+            <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" class="w-8 h-8 object-contain animate-pulse" alt="Carregando...">
         </div>
-        <h2 class="text-white/90 font-bold text-lg tracking-widest uppercase animate-pulse">Woca Intelligence</h2>
-        <p class="text-brand-primary/60 text-xs mt-2 tracking-wide font-light">Conectando aos dados...</p>
+        <p class="text-brand-primary/80 text-[10px] tracking-[0.2em] font-bold uppercase animate-pulse">BUSCANDO INTERAÇÕES...</p>
     </div>
 
+    <!-- MAIN APP -->
     <div id="app" class="flex-grow flex flex-col relative z-10 opacity-0 transition-opacity duration-700">
-        <!-- Cabeçalho -->
-        <header class="sticky top-0 z-50 border-b border-white/5 bg-noir-base/60 backdrop-blur-xl">
-            <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <div class="bg-brand-primary/10 p-2 rounded-xl border border-brand-primary/20 shadow-glow flex items-center justify-center transition hover:scale-105 hover:bg-brand-primary/20">
-                        <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" alt="Woca Logo" class="w-8 h-8 object-contain">
+        
+        <!-- Header -->
+        <header class="sticky top-0 z-50 border-b border-white/5 bg-noir-base/80 backdrop-blur-xl">
+            <div class="container mx-auto px-4 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="bg-gradient-to-br from-brand-primary/20 to-brand-primary/5 p-2 rounded-lg border border-brand-primary/10">
+                        <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" alt="Woca Logo" class="w-6 h-6 object-contain">
                     </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight text-white leading-tight">Woca</h1>
-                        <p class="text-xs text-white/50 uppercase tracking-widest font-medium">Social Listening Hub</p>
+                    <div class="hidden sm:block">
+                        <h1 class="text-lg font-bold tracking-tight text-white leading-tight">Woca</h1>
+                        <p class="text-[10px] text-noir-muted uppercase tracking-widest font-medium">Social Listening Hub</p>
                     </div>
                 </div>
+                
+                <!-- Navegação -->
+                <nav class="flex gap-4">
+                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> <span>Dashboard</span>
+                    </button>
+                    <button onclick="switchView('new-mention')" id="nav-new-mention" class="nav-btn">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> <span>Nova Menção</span>
+                    </button>
+                    <button onclick="switchView('curation')" id="nav-curation" class="nav-btn">
+                        <i data-lucide="inbox" class="w-4 h-4"></i> <span>Curadoria</span>
+                        <!-- Badge Flutuante Absoluta -->
+                        <span class="nav-badge hidden animate-pulse" id="curation-badge">0</span>
+                    </button>
+                </nav>
             </div>
         </header>
 
-        <!-- Conteúdo -->
-        <main class="flex-grow container mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-0">
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto p-4 lg:p-8 relative z-0">
             
-            <!-- Formulário -->
-            <div class="lg:col-span-4 bento-card p-6 h-fit">
-                <h2 class="text-lg font-semibold mb-6 flex items-center gap-3 text-white border-b border-white/10 pb-4">
-                    <div class="p-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
-                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                    </div>
-                    Nova Menção
-                </h2>
-                <form id="mention-form" class="space-y-5">
-                    <div>
-                        <label for="date" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Data</label>
-                        <input type="date" id="date" name="date" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
-                    </div>
-                    <div>
-                        <label for="channel" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Plataforma / Canal</label>
-                        <select id="channel" name="channel" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
-                            <option>Instagram</option>
-                            <option>Facebook</option>
-                            <option>TikTok</option>
-                            <option>YouTube</option>
-                            <option>LinkedIn</option>
-                            <option>Site / Blog</option>
-                            <option>Outro</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="user" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Usuário / Perfil (@)</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i data-lucide="user" class="h-4 w-4 text-brand-primary/60"></i>
-                            </div>
-                            <input type="text" id="user" name="user" placeholder="@usuario ou Nome" class="w-full pl-10 px-4 py-3 rounded-xl outline-none transition-all placeholder-white/20">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="link" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Link</label>
-                        <input type="url" id="link" name="link" placeholder="https://..." required class="w-full px-4 py-3 rounded-xl outline-none transition-all placeholder-white/20">
-                    </div>
-                    <div>
-                        <label for="type" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Tipo de Interação</label>
-                        <select id="type" name="type" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
-                            <option value="Comentário" selected>💬 Comentário Público</option>
-                            <option value="DM">📩 Mensagem Direta (DM)</option>
-                            <option value="Story">📸 Menção em Story</option>
-                            <option value="Reação">❤️ Reação / Like</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="sentiment" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Sentimento</label>
-                            <select id="sentiment" name="sentiment" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
-                                <option value="Positivo">Positivo</option>
-                                <option value="Negativo">Negativo</option>
-                                <option value="Neutro" selected>Neutro</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="topic" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Tópico</label>
-                            <select id="topic" name="topic" required class="w-full px-4 py-3 rounded-xl outline-none transition-all">
-                                <option>Dúvidas Técnicas</option>
-                                <option>Planos e Preços</option>
-                                <option>Campanhas</option>
-                                <option>Reclamações</option>
-                                <option>Sugestões</option>
-                                <option>Elogios</option>
-                                <option>Atendimento</option>
-                                <option>Geral</option>
-                                <option>Stories</option>
-                                <option>Marcação</option>
-                                <option value="Engajamento">Engajamento</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="content-container" class="visible-field">
-                        <label for="content" class="block text-xs font-bold text-white/40 uppercase tracking-wider mb-2 pl-1">Conteúdo / Resumo</label>
-                        <textarea id="content" name="content" rows="4" placeholder="O que foi dito?" class="w-full px-4 py-3 rounded-xl outline-none transition-all placeholder-white/20"></textarea>
-                    </div>
-                    
-                    <button type="submit" id="submit-button" class="w-full bg-gradient-to-r from-brand-primary to-brand-dark text-white font-bold py-4 px-4 rounded-xl hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-primary/30 transition-all duration-300 ease-in-out transform hover:scale-[1.02] shadow-glow flex items-center justify-center gap-2 mt-2 border border-white/10">
-                        <span id="button-text" class="flex items-center gap-2">
-                            <i data-lucide="send" class="w-4 h-4"></i> Registrar Dado
-                        </span>
-                        <span id="button-loader" class="hidden">
-                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </span>
-                    </button>
-
-                    <!-- ÁREA DE IMPORTAÇÃO -->
-                    <div class="pt-4 border-t border-white/5 mt-4">
-                        <input type="file" id="csv-file" accept=".csv" class="hidden">
-                        <button type="button" id="import-button" class="w-full bg-transparent border border-dashed border-white/30 text-white/60 hover:text-white hover:border-brand-primary hover:bg-brand-primary/10 font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm">
-                            <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importar Curtidas (CSV)
-                        </button>
-                        <div id="import-status" class="hidden mt-2">
-                            <div class="flex justify-between text-xs text-white/60 mb-1">
-                                <span id="import-msg">Processando...</span>
-                                <span id="import-count">0%</span>
-                            </div>
-                            <div class="progress-container">
-                                <div id="progress-bar" class="progress-bar"></div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Dashboard -->
-            <div class="lg:col-span-8 flex flex-col gap-6">
-                
+            <!-- ====== VIEW: DASHBOARD ====== -->
+            <section id="view-dashboard" class="view-section active gap-8 max-w-[1600px] mx-auto">
                 <!-- Filtros -->
-                 <div class="bento-card p-4 flex flex-col xl:flex-row gap-4 items-center justify-between border-l-4 border-l-brand-primary/50">
-                    <div class="flex items-center gap-2 text-white/60 px-2 min-w-fit">
-                        <i data-lucide="filter" class="w-4 h-4"></i>
-                        <span class="text-sm font-semibold uppercase tracking-wider">Filtros</span>
+                 <div class="bento-card p-5 flex flex-col xl:flex-row gap-6 items-center justify-between border-l-4 border-l-brand-primary">
+                    <div class="flex items-center gap-3 text-noir-muted px-2 w-full xl:w-auto">
+                        <div class="p-2 bg-white/5 rounded-lg"><i data-lucide="filter" class="w-4 h-4"></i></div>
+                        <span class="text-xs font-bold uppercase tracking-widest">Filtros Globais</span>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-3 w-full items-center">
-                        <div class="relative w-full sm:w-1/3 group">
-                             <select id="filter-channel" class="w-full px-3 py-2.5 rounded-lg text-sm appearance-none outline-none cursor-pointer">
+                    <div class="flex flex-wrap gap-4 w-full xl:w-auto items-center justify-end">
+                        <div class="relative w-full sm:w-auto min-w-[180px] group">
+                             <select id="filter-channel" class="w-full px-4 py-2.5 rounded-xl text-sm cursor-pointer pl-10 appearance-none bg-black/20 border border-white/10 hover:border-brand-primary/50">
                                 <option value="all">Todos Canais</option>
                             </select>
-                            <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-white/40 pointer-events-none group-hover:text-brand-primary transition-colors"></i>
+                            <i data-lucide="hash" class="absolute left-3 top-3 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                            <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-noir-muted pointer-events-none group-hover:text-brand-primary transition-colors"></i>
                         </div>
-                        <div class="relative w-full sm:w-1/3 group">
-                            <select id="filter-sentiment" class="w-full px-3 py-2.5 rounded-lg text-sm appearance-none outline-none cursor-pointer">
+                        <div class="relative w-full sm:w-auto min-w-[200px] group">
+                            <select id="filter-sentiment" class="w-full px-4 py-2.5 rounded-xl text-sm cursor-pointer pl-10 appearance-none bg-black/20 border border-white/10 hover:border-brand-primary/50">
                                 <option value="all">Todos Sentimentos</option>
                                 <option value="Positivo">Positivo</option>
                                 <option value="Negativo">Negativo</option>
                                 <option value="Neutro">Neutro</option>
                             </select>
-                            <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-white/40 pointer-events-none group-hover:text-brand-primary transition-colors"></i>
+                            <i data-lucide="heart" class="absolute left-3 top-3 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                            <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-noir-muted pointer-events-none group-hover:text-brand-primary transition-colors"></i>
                         </div>
-                        <div class="flex gap-2 w-full sm:w-auto items-center">
-                            <div class="relative w-full">
-                                <input type="date" id="filter-date-start" class="w-full px-3 py-2.5 rounded-lg text-sm outline-none cursor-pointer" title="Data Início">
+                        <div class="flex gap-2 w-full sm:w-auto items-center bg-black/20 p-1.5 rounded-xl border border-white/10">
+                            <div class="relative">
+                                <input type="date" id="filter-date-start" class="bg-transparent border-none !shadow-none text-xs w-32 pl-8 pr-2 py-1.5 focus:bg-transparent text-white cursor-pointer relative z-10">
+                                <i data-lucide="calendar" class="absolute left-2 top-1.5 w-4 h-4 text-noir-muted pointer-events-none z-0"></i>
                             </div>
-                            <span class="text-white/40 text-xs font-medium">ATÉ</span>
-                            <div class="relative w-full">
-                                <input type="date" id="filter-date-end" class="w-full px-3 py-2.5 rounded-lg text-sm outline-none cursor-pointer" title="Data Fim">
+                            <span class="text-noir-muted text-[10px] font-bold">ATÉ</span>
+                            <div class="relative">
+                                <input type="date" id="filter-date-end" class="bg-transparent border-none !shadow-none text-xs w-32 pl-8 pr-2 py-1.5 focus:bg-transparent text-white cursor-pointer relative z-10">
+                                <i data-lucide="calendar" class="absolute left-2 top-1.5 w-4 h-4 text-noir-muted pointer-events-none z-0"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- KPIs Principais -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bento-card p-5 text-center relative overflow-hidden group">
-                        <div class="absolute inset-0 bg-brand-primary/5 group-hover:bg-brand-primary/10 transition-colors"></div>
-                        <h4 class="text-xs font-bold text-white/40 uppercase tracking-widest mb-1 relative z-10">Total</h4>
-                        <p id="kpi-total" class="text-3xl font-bold text-white group-hover:scale-110 transition-transform duration-300 relative z-10 drop-shadow-md">0</p>
+                <!-- KPIs -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bento-card p-6 items-center justify-center text-center relative overflow-hidden group min-h-[140px]">
+                        <div class="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <h4 class="text-[10px] font-bold text-noir-muted uppercase tracking-widest mb-2 relative z-10">Volume Total</h4>
+                        <p id="kpi-total" class="text-4xl md:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300 relative z-10">0</p>
                     </div>
-                    <div class="bento-card p-5 text-center group">
-                        <h4 class="text-xs font-bold text-brand-green uppercase tracking-widest mb-1 opacity-80">Positivas</h4>
-                        <p id="kpi-positive" class="text-3xl font-bold text-brand-green drop-shadow-[0_0_8px_rgba(0,230,118,0.3)]">0%</p>
+                    <div class="bento-card p-6 items-center justify-center text-center group min-h-[140px]">
+                        <h4 class="text-[10px] font-bold text-brand-green uppercase tracking-widest mb-2 opacity-80">Positivas</h4>
+                        <p id="kpi-positive" class="text-4xl md:text-5xl font-bold text-brand-green">0%</p>
                     </div>
-                    <div class="bento-card p-5 text-center group">
-                        <h4 class="text-xs font-bold text-brand-primary uppercase tracking-widest mb-1 opacity-80">Negativas</h4>
-                        <p id="kpi-negative" class="text-3xl font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(255,107,91,0.3)]">0%</p>
+                    <div class="bento-card p-6 items-center justify-center text-center group min-h-[140px]">
+                        <h4 class="text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-2 opacity-80">Negativas</h4>
+                        <p id="kpi-negative" class="text-4xl md:text-5xl font-bold text-brand-primary">0%</p>
                     </div>
-                     <div class="bento-card p-5 text-center group">
-                        <h4 class="text-xs font-bold text-white/40 uppercase tracking-widest mb-1">Neutras</h4>
-                        <p id="kpi-neutral" class="text-3xl font-bold text-gray-400">0%</p>
+                     <div class="bento-card p-6 items-center justify-center text-center group min-h-[140px]">
+                        <h4 class="text-[10px] font-bold text-noir-muted uppercase tracking-widest mb-2">Neutras</h4>
+                        <p id="kpi-neutral" class="text-4xl md:text-5xl font-bold text-gray-500">0%</p>
                     </div>
                 </div>
 
-                <!-- Métricas de Engajamento & Ranking -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full lg:h-64">
-                    <div class="lg:col-span-1 flex flex-col gap-4">
-                        <div class="bento-card p-5 flex items-center justify-between flex-1 relative overflow-hidden group">
-                            <div class="absolute right-[-10px] bottom-[-10px] opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity rotate-12">
-                                <i data-lucide="camera" class="w-24 h-24 text-white"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Stories</h4>
-                                <p id="kpi-stories" class="text-4xl font-bold text-white drop-shadow-md">0</p>
-                            </div>
-                            <div class="p-3 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 text-white">
-                                <i data-lucide="instagram" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                        <div class="bento-card p-5 flex items-center justify-between flex-1 relative overflow-hidden group">
-                            <div class="absolute right-[-10px] bottom-[-10px] opacity-10 pointer-events-none group-hover:opacity-20 transition-opacity rotate-12">
-                                <i data-lucide="heart" class="w-24 h-24 text-red-500"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Reações</h4>
-                                <p id="kpi-reactions" class="text-4xl font-bold text-white drop-shadow-md">0</p>
-                            </div>
-                            <div class="p-3 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-white/10 text-red-400">
-                                <i data-lucide="heart" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2 bento-card p-5 flex flex-col overflow-hidden">
-                        <div class="flex justify-between items-center border-b border-white/5 pb-3 mb-2">
-                            <h3 class="text-sm font-bold text-white/90 uppercase tracking-widest flex items-center gap-2" id="ranking-title">
-                                <i data-lucide="trophy" class="w-4 h-4 text-brand-yellow"></i>
-                                Top Users
+                <!-- Gráficos -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[380px]">
+                    <div class="bento-card p-6 lg:col-span-1">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="text-xs font-bold text-white/90 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-brand-primary"></i> Sentimento
                             </h3>
-                            <button id="clear-user-filter" class="hidden text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded flex items-center gap-1 transition">
-                                <i data-lucide="x" class="w-3 h-3"></i> Limpar
-                            </button>
                         </div>
-                        <div id="ranking-list" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2">
-                            <p class="text-white/30 text-xs italic p-2">Sem dados para ranking.</p>
+                        <div class="chart-container flex items-center justify-center"><canvas id="sentiment-chart"></canvas></div>
+                    </div>
+                    <div class="bento-card p-6 lg:col-span-2">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="text-xs font-bold text-white/90 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="bar-chart-2" class="w-4 h-4 text-brand-primary"></i> Volume por Canal
+                            </h3>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Gráficos e Nuvem -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bento-card p-6">
-                        <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest border-l-2 border-brand-green pl-3 flex justify-between items-center">
-                            Sentimento Geral
-                            <i data-lucide="pie-chart" class="w-4 h-4 text-white/20"></i>
-                        </h3>
-                        <div class="chart-container"><canvas id="sentiment-chart"></canvas></div>
-                    </div>
-                    <div class="bento-card p-6">
-                        <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest border-l-2 border-brand-primary pl-3 flex justify-between items-center">
-                            Por Canal
-                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-white/20"></i>
-                        </h3>
                         <div class="chart-container"><canvas id="channel-chart"></canvas></div>
                     </div>
-                    
+                </div>
+
+                <!-- Tópicos e Ranking -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[260px]">
                     <div class="bento-card p-6">
-                        <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest border-l-2 border-brand-yellow pl-3 flex justify-between items-center">
-                            Tópicos em Alta
-                            <i data-lucide="trending-up" class="w-4 h-4 text-white/20"></i>
-                        </h3>
+                         <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xs font-bold text-white/90 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="trending-up" class="w-4 h-4 text-brand-yellow"></i> Tópicos em Alta
+                            </h3>
+                        </div>
                         <div class="chart-container"><canvas id="topic-chart"></canvas></div>
                     </div>
-
-                    <div class="bento-card p-6 relative overflow-hidden border border-brand-neon/30 shadow-neon">
-                         <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                            <i data-lucide="sparkles" class="w-24 h-24 text-brand-neon"></i>
+                    <div class="bento-card p-0 overflow-hidden relative">
+                         <div class="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.02] shrink-0">
+                            <h3 class="text-xs font-bold text-brand-gold uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="crown" class="w-4 h-4"></i> Top 5 Usuários
+                            </h3>
+                             <button id="clear-user-filter" class="hidden text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition border border-white/10">
+                                <i data-lucide="x" class="w-3 h-3"></i> Limpar Filtro
+                            </button>
                         </div>
-                        <h3 class="text-sm font-bold text-white/90 mb-4 uppercase tracking-widest border-l-2 border-brand-neon pl-3 flex justify-between items-center z-10 relative drop-shadow-[0_0_5px_rgba(232,121,249,0.5)]">
-                            O que dizem (Texto)
-                            <i data-lucide="zap" class="w-4 h-4 text-brand-neon"></i>
-                        </h3>
-                        <div class="relative w-full h-[280px] flex items-center justify-center bg-black/40 rounded-xl border border-brand-neon/10 backdrop-blur-md">
-                             <canvas id="word-cloud-canvas" class="w-full h-full cursor-help"></canvas>
-                             <div id="empty-cloud-msg" class="absolute text-white/30 text-xs italic hidden">Sem dados de texto.</div>
+                        <div id="ranking-list" class="p-5 h-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 content-center overflow-y-auto">
+                            <p class="text-noir-muted text-xs italic text-center col-span-full py-8">Calculando ranking...</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Feed de Menções -->
+                <!-- Feed (REFEITO E CORRIGIDO) -->
                 <div class="bento-card p-6">
-                    <h3 class="text-sm font-bold text-white/80 mb-4 uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="message-square-text" class="text-white/40 w-4 h-4"></i>
-                        Últimas Interações (Texto)
-                    </h3>
-                    <div id="mentions-feed" class="max-h-80 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                        <p class="text-white/30 text-center py-8 text-sm italic">Carregando dados da base...</p>
+                    <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                        <h3 class="text-xs font-bold text-white/90 uppercase tracking-widest flex items-center gap-2">
+                            <i data-lucide="message-square-text" class="w-4 h-4 text-brand-primary"></i> Últimas Interações (Texto)
+                        </h3>
+                    </div>
+                    <div id="mentions-feed" class="max-h-[500px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                        <p class="text-noir-muted text-center py-12 text-sm italic">Carregando dados da base...</p>
                     </div>
                 </div>
+            </section>
 
-            </div>
+            <!-- ====== VIEW: NOVA MENÇÃO ====== -->
+            <section id="view-new-mention" class="view-section hidden max-w-3xl mx-auto pt-4 pb-12">
+                <div class="bento-card p-8 lg:p-10 border-t-4 border-t-brand-primary shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-12 bg-brand-primary/5 rounded-bl-full pointer-events-none"></div>
+                    <div class="flex items-center gap-4 mb-8 pb-8 border-b border-white/5">
+                        <div class="p-4 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-dark text-white shadow-glow">
+                            <i data-lucide="pen-tool" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Registro Manual</h2>
+                            <p class="text-noir-muted text-sm mt-1">Adicione interações que não foram capturadas automaticamente.</p>
+                        </div>
+                    </div>
+                    <form id="mention-form" class="space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Data</label>
+                                <div class="relative"><input type="date" id="date" name="data" required class="w-full px-4 py-3 rounded-xl pl-10 text-white/90"><i data-lucide="calendar" class="absolute left-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i></div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Plataforma</label>
+                                <div class="relative">
+                                    <select id="channel" name="canal" required class="w-full px-4 py-3 rounded-xl pl-10 appearance-none text-white/90"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option><option>Site / Blog</option><option>Outro</option></select>
+                                    <i data-lucide="hash" class="absolute left-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                                    <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Usuário / Perfil (@)</label>
+                            <div class="relative"><input type="text" id="user" name="usuario" placeholder="@usuario" class="w-full px-4 py-3 rounded-xl pl-10 placeholder-white/20 text-white/90"><i data-lucide="user" class="absolute left-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i></div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Link (Opcional)</label>
+                            <div class="relative"><input type="url" id="link" name="link" placeholder="https://..." class="w-full px-4 py-3 rounded-xl pl-10 placeholder-white/20 text-white/90"><i data-lucide="link" class="absolute left-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-black/20 rounded-xl border border-white/5">
+                             <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Tipo</label>
+                                <div class="relative">
+                                    <select id="type" name="tipo" required class="w-full px-4 py-3 rounded-xl appearance-none text-white/90"><option value="Comentário" selected>💬 Comentário</option><option value="DM">📩 DM / Inbox</option><option value="Story">📸 Story</option><option value="Texto">📝 Texto / Post</option></select>
+                                    <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Sentimento</label>
+                                <div class="relative">
+                                    <select id="sentiment" name="sentimento" required class="w-full px-4 py-3 rounded-xl appearance-none text-white/90"><option value="Positivo">Positivo</option><option value="Negativo">Negativo</option><option value="Neutro" selected>Neutro</option></select>
+                                    <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Tópico</label>
+                                <div class="relative">
+                                    <select id="topic" name="topico" required class="w-full px-4 py-3 rounded-xl appearance-none text-white/90"><option>Dúvidas Técnicas</option><option>Planos e Preços</option><option>Campanhas</option><option>Reclamações</option><option>Sugestões</option><option>Elogios</option><option>Atendimento</option><option>Geral</option><option>Engajamento</option></select>
+                                    <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-noir-muted pointer-events-none"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-noir-muted uppercase tracking-wider pl-1">Conteúdo</label>
+                            <textarea id="content" name="conteudo" rows="4" placeholder="Cole aqui o que foi dito..." class="w-full px-4 py-3 rounded-xl placeholder-white/20 text-white/90"></textarea>
+                        </div>
+                        <div class="pt-4 flex flex-col gap-4">
+                            <button type="submit" id="submit-button" class="w-full bg-white text-black font-bold py-4 px-4 rounded-xl hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-glow flex items-center justify-center gap-2 transform hover:scale-[1.01]"><span id="button-text" class="flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Salvar Interação</span></button>
+                        </div>
+                         <div class="text-center">
+                            <input type="file" id="csv-file" accept=".csv" class="hidden">
+                            <button type="button" id="import-button" class="text-[10px] text-noir-muted hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto py-2">
+                                <i data-lucide="upload-cloud" class="w-3 h-3"></i> Importar CSV
+                            </button>
+                            <div id="import-status" class="hidden mt-2 max-w-xs mx-auto">
+                                <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+                                <span id="import-count" class="text-[10px] text-white/40 block mt-1">0%</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ====== VIEW: CURADORIA (LISTA) ====== -->
+            <section id="view-curation" class="view-section hidden max-w-[1600px] mx-auto gap-8">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-3"><i data-lucide="inbox" class="w-6 h-6 text-brand-primary"></i> Pendentes</h2>
+                        <p class="text-noir-muted text-sm mt-1">Revise rapidamente as interações e classifique.</p>
+                    </div>
+                    <div class="flex gap-2"><span class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-white/60"><strong id="curation-count-header" class="text-white">0</strong> pendentes</span></div>
+                </div>
+                
+                <!-- LISTA -->
+                <div id="curation-grid" class="flex flex-col gap-3">
+                    <!-- Itens injetados via JS -->
+                </div>
+
+                <div id="curation-empty-state" class="hidden flex-col items-center justify-center h-64 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+                    <i data-lucide="check-circle-2" class="w-12 h-12 text-brand-green mb-4 opacity-50"></i>
+                    <h3 class="text-lg font-bold text-white">Tudo limpo!</h3>
+                    <p class="text-noir-muted text-sm">Você zerou a fila de curadoria. Bom trabalho!</p>
+                </div>
+            </section>
+
         </main>
     </div>
 
     <!-- Modal Feedback -->
-    <div id="feedback-modal" class="feedback-modal fixed top-6 right-6 p-4 rounded-xl shadow-2xl flex items-center gap-4 border-l-4 opacity-0 transform translate-y-2 pointer-events-none z-50">
+    <div id="feedback-modal" class="feedback-modal fixed top-6 right-6 p-4 rounded-xl shadow-2xl flex items-center gap-4 border-l-4 opacity-0 transform translate-y-2 pointer-events-none z-[100]">
         <div id="modal-icon"></div>
         <p id="modal-message" class="font-medium text-sm"></p>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTM4f3KhNDchUnhCf16I6TySpgg6T-vT-SKnPRz5Ndoc4VJteAR1Im0gwN576Z7w8B/exec'; 
-            
-            Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
-            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
-            Chart.defaults.font.family = "'Switzer', 'Inter', sans-serif";
+        let pendingMentions = [];
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3sQ18psqo9ti1IoCMPSvrwomr6Dl_LN7YE75lDvjCD2Tj_8rt4gY0S6uV9uN3B3IVHw/exec'; 
 
+        // --- LÓGICA DE CURADORIA EM LISTA ---
+        function renderCurationQueue() {
+            const grid = document.getElementById('curation-grid');
+            const emptyState = document.getElementById('curation-empty-state');
+            if(!grid || !emptyState) return;
+
+            const badge = document.getElementById('curation-badge');
+            const headerCount = document.getElementById('curation-count-header');
+            const count = pendingMentions.length;
+            if(badge) { 
+                badge.textContent = count; 
+                badge.classList.toggle('hidden', count === 0); 
+            }
+            if(headerCount) headerCount.textContent = count;
+
+            grid.innerHTML = '';
+            if (count === 0) {
+                emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); return;
+            } else {
+                emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
+            }
+
+            pendingMentions.forEach(item => {
+                const platformIcon = item.channel === 'Instagram' ? 'instagram' : item.channel === 'Facebook' ? 'facebook' : 'youtube';
+                const card = document.createElement('div');
+                card.className = 'group flex flex-col lg:flex-row items-start lg:items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all hover:border-brand-primary/30 animate-fade-in';
+                card.id = `card-${item.id}`;
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-[200px]">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center text-xs font-bold text-white border border-white/10">${(item.user || 'A').charAt(0).toUpperCase()}</div>
+                        <div class="flex flex-col">
+                            <h4 class="text-sm font-bold text-white leading-tight truncate w-32">${item.user}</h4>
+                            <div class="flex items-center gap-1.5 text-[10px] text-noir-muted mt-0.5">
+                                <i data-lucide="${platformIcon}" class="w-3 h-3"></i> ${item.channel}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-grow min-w-0 pr-4">
+                        <p class="text-sm text-gray-300 leading-relaxed line-clamp-2 lg:line-clamp-1 group-hover:line-clamp-none transition-all duration-300">"${item.content}"</p>
+                    </div>
+                    <div class="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-white/5 pt-3 lg:pt-0 mt-2 lg:mt-0">
+                        <div class="flex bg-black/20 rounded-lg p-1 gap-1">
+                            <button onclick="setSentiment('${item.id}', 'Positivo')" class="w-8 h-7 flex items-center justify-center rounded hover:bg-white/10 transition text-noir-muted sentiment-btn-sm" title="Positivo" id="btn-pos-${item.id}"><i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="setSentiment('${item.id}', 'Neutro')" class="w-8 h-7 flex items-center justify-center rounded hover:bg-white/10 transition text-white bg-white/10 sentiment-btn-sm active-neu" title="Neutro" id="btn-neu-${item.id}"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="setSentiment('${item.id}', 'Negativo')" class="w-8 h-7 flex items-center justify-center rounded hover:bg-white/10 transition text-noir-muted sentiment-btn-sm" title="Negativo" id="btn-neg-${item.id}"><i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                        <div class="relative w-32 lg:w-40">
+                            <select id="topic-${item.id}" onchange="setTopic('${item.id}', this.value)" class="w-full px-3 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 appearance-none text-white focus:border-brand-primary truncate pr-6 cursor-pointer hover:bg-black/30 transition">
+                                <option>Geral</option><option>Dúvidas Técnicas</option><option>Planos e Preços</option><option>Elogios</option><option>Reclamações</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-2 top-2 w-3 h-3 text-white/30 pointer-events-none"></i>
+                        </div>
+                        <button onclick="approveMention('${item.id}')" class="bg-brand-primary hover:bg-brand-dark text-white p-2 rounded-lg shadow-glow transition-transform hover:scale-105" title="Aprovar">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </button>
+                    </div>`;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        window.setSentiment = (id, sentiment) => {
+            const card = document.getElementById(`card-${id}`);
+            if(!card) return;
+            card.querySelectorAll(`.sentiment-btn-sm`).forEach(btn => btn.classList.remove('active-pos', 'active-neg', 'active-neu', 'bg-white/10', 'text-white'));
+            
+            const btnMap = { 'Positivo': `btn-pos-${id}`, 'Negativo': `btn-neg-${id}`, 'Neutro': `btn-neu-${id}` };
+            const classMap = { 'Positivo': ['active-pos', 'text-brand-green'], 'Negativo': ['active-neg', 'text-brand-primary'], 'Neutro': ['active-neu', 'text-white'] };
+            
+            const btn = document.getElementById(btnMap[sentiment]);
+            if(btn) {
+                btn.classList.add(...classMap[sentiment]);
+                btn.classList.add('bg-white/10'); 
+            }
+            const item = pendingMentions.find(m => m.id === id);
+            if(item) item.sentiment = sentiment;
+        };
+
+        window.setTopic = (id, topic) => {
+            const item = pendingMentions.find(m => m.id === id);
+            if(item) item.topic = topic;
+        }
+
+        window.approveMention = async (id) => {
+            const card = document.getElementById(`card-${id}`);
+            if(!card) return;
+            
+            // Find data
+            const item = pendingMentions.find(m => m.id === id);
+            if(!item) return;
+
+            // Optimistic Update
+            card.classList.add('animate-slide-out');
+            
+            // Remove from Pending and Add to Approved Locally
+            setTimeout(() => {
+                pendingMentions = pendingMentions.filter(m => m.id !== id);
+                renderCurationQueue();
+                
+                // Add to approved list with status APROVADO
+                const approvedItem = { ...item, status: 'APROVADO' };
+                mentions.unshift(approvedItem);
+                
+                // Update Dashboard immediately and refresh filters
+                populateChannelFilter(); // Atualiza o filtro de canais com o novo dado
+                updateDashboard();
+
+                const modal = document.getElementById('feedback-modal');
+                const msg = document.getElementById('modal-message');
+                if(msg) msg.textContent = "Interação Aprovada!";
+                if(modal) {
+                    modal.classList.remove('opacity-0', 'translate-y-2');
+                    setTimeout(() => modal.classList.add('opacity-0', 'translate-y-2'), 2000);
+                }
+            }, 300);
+
+            // Send to Backend (Silent)
+            try {
+                await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({ 
+                        action: 'approve', 
+                        id: item.id, 
+                        sentiment: item.sentiment,
+                        topic: item.topic || 'Geral'
+                    }) 
+                });
+                
+                // Load fresh data in background to ensure consistency
+                loadMentions();
+
+            } catch(e) {
+                console.error("Erro ao aprovar", e);
+            }
+        };
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active');
+                setTimeout(() => { if(!el.classList.contains('active')) el.classList.add('hidden'); }, 10); 
+            });
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            const selectedView = document.getElementById(`view-${viewName}`);
+            const selectedBtn = document.getElementById(`nav-${viewName}`);
+            if (selectedView) {
+                selectedView.classList.remove('hidden');
+                setTimeout(() => selectedView.classList.add('active'), 20);
+            }
+            if (selectedBtn) selectedBtn.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Chart.defaults.color = 'rgba(255, 255, 255, 0.5)';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+            Chart.defaults.font.family = "'Switzer', 'Inter', sans-serif";
             lucide.createIcons();
 
             const appLoader = document.getElementById('app-loader');
             const appContainer = document.getElementById('app');
-            const body = document.body;
-            
             const form = document.getElementById('mention-form');
             const submitButton = document.getElementById('submit-button');
             const buttonText = document.getElementById('button-text');
             const buttonLoader = document.getElementById('button-loader');
-            const typeField = document.getElementById('type');
-            const contentContainer = document.getElementById('content-container');
-            const contentField = document.getElementById('content');
-            
-            // Import Elements
             const csvFile = document.getElementById('csv-file');
             const importButton = document.getElementById('import-button');
             const importStatus = document.getElementById('import-status');
             const progressBar = document.getElementById('progress-bar');
-            const importMsg = document.getElementById('import-msg');
-            const importCount = document.getElementById('import-count');
-
-            // Filtros e Containers
-            const filterChannel = document.getElementById('filter-channel');
-            const filterSentiment = document.getElementById('filter-sentiment');
-            const filterDateStart = document.getElementById('filter-date-start');
-            const filterDateEnd = document.getElementById('filter-date-end');
-            const mentionsFeedContainer = document.getElementById('mentions-feed');
-            const rankingContainer = document.getElementById('ranking-list');
-            const rankingTitle = document.getElementById('ranking-title');
-            const clearUserFilterBtn = document.getElementById('clear-user-filter');
             
-            let mentions = [];
-            let selectedUser = null; 
+            let mentions = []; // Dashboard Approved Mentions
             let sentimentChart, channelChart, topicChart; 
-
-            const sentimentColors = { 'Positivo': '#00E676', 'Negativo': '#FF6B5B', 'Neutro': '#555555' };
-            const chartColors = ['#FF6B5B', '#FF8A75', '#FFA590', '#FFC0AD', '#E0E0E0', '#BDBDBD'];
-            const stopWords = new Set(['de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por', 'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou', 'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela', 'até', 'isso', 'ela', 'entre', 'era', 'depois', 'sem', 'mesmo', 'aos', 'ter', 'seus', 'quem', 'nas', 'me', 'esse', 'eles', 'estão', 'você', 'tinha', 'foram', 'essa', 'num', 'nem', 'suas', 'meu', 'às', 'minha', 'têm', 'numa', 'pelos', 'elas', 'havia', 'seja', 'qual', 'será', 'nós', 'tenho', 'lhe', 'deles', 'essas', 'esses', 'pelas', 'este', 'fosse', 'dele', 'tu', 'te', 'vocês', 'vos', 'lhes', 'meus', 'minhas', 'teu', 'tua', 'teus', 'tuas', 'nosso', 'nossa', 'nossos', 'nossas', 'dela', 'delas', 'esta', 'estes', 'estas', 'aquele', 'aquela', 'aqueles', 'aquelas', 'isto', 'aquilo', 'estou', 'pra', 'pro', 'tá', 'né', 'sim', 'vai', 'pode', 'sobre', 'bem', 'bom', 'mal', 'ruim', 'ver', 'tmb', 'vc', 'pq', 'app', 'sou', 'veiculares', 'porem', 'porém', 'veicular', 'dia', 'hoje', 'agora', 'fazer', 'tudo', 'nada']);
+            const sentimentColors = { 'Positivo': '#00E676', 'Negativo': '#FF6B5B', 'Neutro': '#52525B' };
 
             const showFeedback = (message, type = 'success') => {
                 const modal = document.getElementById('feedback-modal');
                 const iconContainer = document.getElementById('modal-icon');
                 const messageEl = document.getElementById('modal-message');
+                if(!modal || !messageEl) return;
                 messageEl.textContent = message;
                 modal.classList.remove('border-brand-green', 'border-brand-primary');
                 modal.classList.add(type === 'success' ? 'border-brand-green' : 'border-brand-primary');
@@ -518,481 +631,290 @@
             };
             
             const hideLoader = () => {
-                appLoader.classList.add('loader-hidden');
-                appContainer.classList.remove('opacity-0');
-                body.classList.remove('overflow-hidden'); 
+                if(appLoader) appLoader.classList.add('loader-hidden');
+                if(appContainer) appContainer.classList.remove('opacity-0');
             };
 
-            // Lógica de Botão de Importar CSV
-            importButton.addEventListener('click', () => csvFile.click());
-
-            csvFile.addEventListener('change', async (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                importStatus.classList.remove('hidden');
-                importButton.disabled = true;
-                
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const text = e.target.result;
-                    await processCSV(text);
-                };
-                reader.readAsText(file);
-            });
-
-            async function processCSV(csvText) {
-                // Assume que não tem cabeçalho, ou se tiver, precisa pular.
-                // O formato esperado é: DATA, CANAL, USUARIO, LINK
-                const rows = csvText.split('\n');
-                let toImport = [];
-                
-                // Preparar índice de duplicidade com dados atuais
-                // Normaliza o link (trim) para garantir comparação justa
-                const existingIndex = new Set(mentions.map(m => `${(m.user||'').toLowerCase()}|${(m.link||'').trim()}|Reação`));
-
-                // Função Robust para ler linha CSV (Respeita aspas "Value, with comma")
-                const parseLine = (line) => {
-                    const result = [];
-                    let current = '';
-                    let inQuotes = false;
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
-                        if (char === '"') { inQuotes = !inQuotes; }
-                        else if (char === ',' && !inQuotes) {
-                            result.push(current.trim());
-                            current = '';
-                        } else {
-                            current += char;
-                        }
-                    }
-                    result.push(current.trim());
-                    return result;
-                };
-
-                // Parsear CSV
-                rows.forEach(row => {
-                    // Ignora linhas vazias
-                    if (!row.trim()) return;
-                    
-                    // Usa o parser robusto em vez de split simples
-                    const cols = parseLine(row);
-                    
-                    // Validação básica de colunas
-                    if (cols.length < 4) return; 
-
-                    // Remove aspas extras que podem ter sobrado
-                    const clean = (str) => str ? str.replace(/^"|"$/g, '') : '';
-
-                    const date = clean(cols[0]);
-                    const channel = clean(cols[1]);
-                    const user = clean(cols[2]).replace('@', ''); // Limpa @ se tiver
-                    const link = clean(cols[3]);
-
-                    // Se for cabeçalho (Data, Canal...), ignora
-                    if (date.toLowerCase().includes('data') || link.toLowerCase().includes('link')) return;
-                    
-                    // Se o link estiver vazio, pula (segurança)
-                    if (!link || link.length < 5) return;
-
-                    // Checa duplicidade (Agora com link garantido)
-                    const key = `${user.toLowerCase()}|${link}|Reação`;
-                    
-                    // Debug no console para você verificar se precisar (F12)
-                    // console.log('Processando:', key, 'Existe?', existingIndex.has(key));
-
-                    if (!existingIndex.has(key)) {
-                        toImport.push({
-                            date: date,
-                            channel: channel,
-                            user: user,
-                            link: link,
-                            type: 'Reação',
-                            sentiment: 'Positivo',
-                            topic: 'Engajamento',
-                            content: '(Reação / Like)',
-                            id: Date.now() + Math.random() // ID temporário
-                        });
-                        existingIndex.add(key); // Adiciona ao índice para evitar duplicados no próprio CSV
-                    }
+            if(importButton) {
+                importButton.addEventListener('click', () => csvFile.click());
+            }
+            
+            if(csvFile) {
+                csvFile.addEventListener('change', async (event) => {
+                    // CSV Import not implemented for real backend in MVP
+                    showFeedback('Importação via CSV não disponível nesta versão conectada.', 'error');
                 });
-
-                if (toImport.length === 0) {
-                    showFeedback('Nenhuma curtida nova encontrada (ou erro de leitura).', 'error');
-                    resetImportUI();
-                    return;
-                }
-
-                // Enviar em Fila (Um por um para não sobrecarregar)
-                importMsg.textContent = `Importando ${toImport.length} curtidas...`;
-                
-                for (let i = 0; i < toImport.length; i++) {
-                    const item = toImport[i];
-                    try {
-                        await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            redirect: 'follow',
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            body: JSON.stringify(item)
-                        });
-                        
-                        // Atualiza localmente
-                        mentions.unshift(item);
-                        
-                        // Atualiza barra
-                        const percent = Math.round(((i + 1) / toImport.length) * 100);
-                        progressBar.style.width = `${percent}%`;
-                        importCount.textContent = `${percent}%`;
-                        
-                    } catch (err) {
-                        console.error('Erro ao importar item', item, err);
-                    }
-                }
-
-                // Finalização
-                updateDashboard();
-                populateChannelFilter();
-                showFeedback(`${toImport.length} curtidas importadas com sucesso!`);
-                resetImportUI();
             }
-
-            function resetImportUI() {
-                importStatus.classList.add('hidden');
-                importButton.disabled = false;
-                progressBar.style.width = '0%';
-                importCount.textContent = '0%';
-                csvFile.value = ''; // Limpa input
-            }
-
-            typeField.addEventListener('change', () => {
-                const val = typeField.value;
-                if (val === 'Story' || val === 'Reação') {
-                    contentField.value = val === 'Story' ? '(Menção em Story)' : '(Reação / Like)';
-                    contentContainer.classList.remove('visible-field');
-                    contentContainer.classList.add('hidden-field');
-                } else {
-                    if (contentField.value.startsWith('(')) contentField.value = '';
-                    contentContainer.classList.remove('hidden-field');
-                    contentContainer.classList.add('visible-field');
-                }
-            });
 
             const loadMentions = async () => {
                 try {
                     const response = await fetch(SCRIPT_URL);
                     if (!response.ok) throw new Error('Erro API');
-                    const data = await response.json();
+                    const rawData = await response.json();
                     
-                    // Normalização
-                    mentions = data.map(m => {
-                        if (m.channel && m.channel.includes('(')) {
-                            m.channel = m.channel.split(' (')[0].trim();
-                        }
-                        if (!m.type) { m.type = 'Comentário'; }
-                        return m;
-                    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+                    // Transform Data (Portuguese Keys from Sheet -> English Internal)
+                    const allData = rawData.map(m => ({
+                        id: m.id,
+                        date: m.data,
+                        channel: m.canal,
+                        user: m.usuario,
+                        link: m.link,
+                        type: m.tipo,
+                        sentiment: m.sentimento || 'Neutro',
+                        topic: m.topico || 'Geral',
+                        content: m.conteudo,
+                        status: m.status || 'PENDENTE'
+                    }));
 
-                    populateChannelFilter();
+                    // Split Queues
+                    mentions = allData.filter(m => m.status === 'APROVADO').sort((a, b) => new Date(b.date) - new Date(a.date));
+                    pendingMentions = allData.filter(m => m.status !== 'APROVADO'); // Pendente or Empty
+
+                    populateChannelFilter(); // Populate filters on load
                     updateDashboard();
+                    renderCurationQueue();
                     hideLoader();
                 } catch (error) {
-                    mentionsFeedContainer.innerHTML = `<p class="text-brand-primary text-center py-4">Erro de conexão.</p>`;
-                    showFeedback('Erro ao carregar dados.', 'error');
+                    console.error(error);
                     hideLoader(); 
                 }
             };
 
             const populateChannelFilter = () => {
+                const filterChannel = document.getElementById('filter-channel');
+                if(!filterChannel) return;
                 const channels = [...new Set(mentions.map(m => m.channel))];
                 filterChannel.innerHTML = '<option value="all">Todos Canais</option>';
                 channels.sort().forEach(c => filterChannel.innerHTML += `<option value="${c}">${c}</option>`);
             };
-            
-            const renderMentionsFeed = (data) => {
-                mentionsFeedContainer.innerHTML = '';
-                const textMentions = data.filter(m => m.type === 'Comentário' || m.type === 'DM' || m.type === 'Texto');
-                
-                if (textMentions.length === 0) {
-                    mentionsFeedContainer.innerHTML = `<p class="text-white/30 text-center py-8 text-sm">Nenhuma menção de texto encontrada.</p>`;
-                    return;
+
+            const updateDashboard = () => {
+                const filterChannel = document.getElementById('filter-channel');
+                const filterSentiment = document.getElementById('filter-sentiment');
+                const filterDateStart = document.getElementById('filter-date-start');
+                const filterDateEnd = document.getElementById('filter-date-end');
+
+                if(!filterChannel || !filterSentiment) return;
+
+                // FIX DATE FILTER
+                let contextMentions = mentions;
+                if (filterDateStart && filterDateEnd && filterDateStart.value && filterDateEnd.value) {
+                    // Create date boundaries that cover the whole day
+                    // Parsing YYYY-MM-DD creates a UTC midnight date.
+                    // We need to compare carefully.
+                    // Let's rely on string comparison for dates or construct full day ranges.
+                    const startStr = filterDateStart.value; // YYYY-MM-DD
+                    const endStr = filterDateEnd.value; // YYYY-MM-DD
+                    
+                    // Construct boundary Dates in Local time (or standardized)
+                    const startDate = new Date(startStr + 'T00:00:00');
+                    const endDate = new Date(endStr + 'T23:59:59');
+
+                    contextMentions = contextMentions.filter(m => {
+                        const itemDate = new Date(m.date);
+                        return itemDate >= startDate && itemDate <= endDate;
+                    });
                 }
 
-                const sentimentInfo = {
-                    'Positivo': { icon: 'thumbs-up', color: 'text-brand-green', border: 'border-brand-green/30', bg: 'bg-brand-green/5' },
-                    'Negativo': { icon: 'thumbs-down', color: 'text-brand-primary', border: 'border-brand-primary/30', bg: 'bg-brand-primary/5' },
-                    'Neutro': { icon: 'message-circle', color: 'text-gray-400', border: 'border-white/10', bg: 'bg-white/5' }
-                };
+                if (filterChannel.value !== 'all') contextMentions = contextMentions.filter(m => m.channel === filterChannel.value);
+                if (filterSentiment.value !== 'all') contextMentions = contextMentions.filter(m => m.sentiment === filterSentiment.value);
+                
+                const kpiTotal = document.getElementById('kpi-total');
+                if(kpiTotal) {
+                    const total = contextMentions.length;
+                    kpiTotal.textContent = total;
+                    if(total > 0) {
+                        const pos = contextMentions.filter(m => m.sentiment === 'Positivo').length;
+                        const neg = contextMentions.filter(m => m.sentiment === 'Negativo').length;
+                        const neu = total - pos - neg;
+                        document.getElementById('kpi-positive').textContent = `${Math.round((pos/total)*100)}%`;
+                        document.getElementById('kpi-negative').textContent = `${Math.round((neg/total)*100)}%`;
+                        document.getElementById('kpi-neutral').textContent = `${Math.round((neu/total)*100)}%`;
+                    } else {
+                        ['kpi-positive', 'kpi-negative', 'kpi-neutral'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if(el) el.textContent = '0%';
+                        });
+                    }
+                }
 
-                textMentions.forEach(mention => {
-                    const s = sentimentInfo[mention.sentiment] || sentimentInfo['Neutro'];
-                    const formattedDate = new Date(mention.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-                    const userName = mention.user ? mention.user : "Anônimo";
-                    const typeBadge = mention.type ? mention.type : "Texto";
+                updateCharts(contextMentions);
+                renderMentionsFeed(contextMentions);
+                updateRanking(contextMentions);
+            };
 
-                    const cardHTML = `
-                        <div class="p-4 rounded-xl border ${s.border} ${s.bg} flex gap-4 items-start hover:bg-opacity-80 transition group backdrop-blur-sm">
-                            <div class="${s.color} mt-1 flex-shrink-0"><i data-lucide="${s.icon}" class="w-5 h-5"></i></div>
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-start mb-1">
-                                    <span class="text-brand-primary font-bold text-sm tracking-wide">@${userName}</span>
-                                    <span class="text-[10px] uppercase tracking-wider text-white/40 bg-white/5 px-2 py-0.5 rounded border border-white/10">${typeBadge}</span>
-                                </div>
-                                <p class="text-white/90 text-sm leading-relaxed">"${mention.content}"</p>
-                                <div class="text-xs text-white/40 mt-3 flex items-center justify-between">
+            const updateCharts = (data) => {
+                const sCounts = data.reduce((acc, m) => { acc[m.sentiment] = (acc[m.sentiment] || 0) + 1; return acc; }, {});
+                const chartS = document.getElementById('sentiment-chart');
+                if(chartS) {
+                    if(sentimentChart) sentimentChart.destroy();
+                    const ctxS = chartS.getContext('2d');
+                    sentimentChart = new Chart(ctxS, {
+                        type: 'doughnut',
+                        data: { labels: Object.keys(sCounts), datasets: [{ data: Object.values(sCounts), backgroundColor: Object.keys(sCounts).map(s => sentimentColors[s]), borderColor: 'transparent' }] },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { boxWidth: 8, padding: 15, color: '#A1A1AA', font: {size: 10} } } } }
+                    });
+                }
+
+                const cCounts = data.reduce((acc, m) => { acc[m.channel] = (acc[m.channel] || 0) + 1; return acc; }, {});
+                const chartC = document.getElementById('channel-chart');
+                if(chartC) {
+                    if(channelChart) channelChart.destroy();
+                    const ctxC = chartC.getContext('2d');
+                    channelChart = new Chart(ctxC, {
+                        type: 'bar',
+                        data: { labels: Object.keys(cCounts), datasets: [{ label: 'Menções', data: Object.values(cCounts), backgroundColor: '#FF6B5B', borderRadius: 4, barThickness: 20 }] },
+                        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#A1A1AA' } }, y: { grid: { display: false }, ticks: { color: '#FAFAFA' } } } }
+                    });
+                }
+
+                const tCounts = data.reduce((acc, m) => { acc[m.topic] = (acc[m.topic] || 0) + 1; return acc; }, {});
+                const tSorted = Object.entries(tCounts).sort(([,a],[,b]) => b-a).slice(0, 10);
+                const chartT = document.getElementById('topic-chart');
+                if(chartT) {
+                    if(topicChart) topicChart.destroy();
+                    const ctxT = chartT.getContext('2d');
+                    topicChart = new Chart(ctxT, {
+                        type: 'bar',
+                        data: { labels: tSorted.map(i => i[0]), datasets: [{ label: 'Menções', data: tSorted.map(i => i[1]), backgroundColor: '#FFC107', borderRadius: 4, barThickness: 16 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#A1A1AA' } }, x: { grid: { display: false }, ticks: { color: '#FAFAFA', font: {size: 10} } } } }
+                    });
+                }
+            };
+
+            const renderMentionsFeed = (data) => {
+                const container = document.getElementById('mentions-feed');
+                if(!container) return;
+                container.innerHTML = '';
+                const items = data.filter(m => m.content && m.content.length > 2).slice(0, 50);
+                if(items.length === 0) { container.innerHTML = '<p class="text-noir-muted text-center py-8 text-sm">Nenhuma menção.</p>'; return; }
+                items.forEach(m => {
+                    const icon = m.sentiment === 'Positivo' ? 'thumbs-up' : m.sentiment === 'Negativo' ? 'thumbs-down' : 'minus';
+                    // Cores ajustadas
+                    const color = m.sentiment === 'Positivo' ? 'text-brand-green' : m.sentiment === 'Negativo' ? 'text-brand-primary' : 'text-gray-400';
+                    const borderColor = m.sentiment === 'Positivo' ? 'border-brand-green/30' : m.sentiment === 'Negativo' ? 'border-brand-primary/30' : 'border-white/10';
+                    
+                    const formattedDate = m.date ? new Date(m.date).toLocaleDateString('pt-BR') : '';
+
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="flex items-start gap-4 p-4 rounded-xl border ${borderColor} bg-white/[0.02] hover:bg-white/5 transition-all group relative">
+                            <!-- Ícone -->
+                            <div class="${color} flex-shrink-0 mt-1">
+                                <i data-lucide="${icon}" class="w-6 h-6"></i>
+                            </div>
+                            
+                            <!-- Conteúdo -->
+                            <div class="flex-grow min-w-0 flex flex-col gap-1">
+                                <div class="flex justify-between items-center w-full">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-bold text-white/60 group-hover:text-white transition-colors">${mention.channel}</span>
+                                        <span class="text-brand-primary font-bold text-sm tracking-wide truncate">@${m.user || 'Anon'}</span>
+                                    </div>
+                                    <span class="text-[10px] uppercase tracking-wider text-white/40 bg-white/5 px-2 py-0.5 rounded border border-white/10">COMENTÁRIO</span>
+                                </div>
+                                
+                                <p class="text-white text-sm leading-relaxed font-medium mt-1">"${m.content}"</p>
+                                
+                                <div class="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
+                                    <div class="flex items-center gap-2 text-xs text-white/40 font-semibold uppercase tracking-wide">
+                                        <span>${m.channel}</span>
                                         <span class="text-white/20">|</span>
                                         <span>${formattedDate}</span>
                                     </div>
-                                    <a href="${mention.link}" target="_blank" class="hover:text-brand-primary transition-colors"><i data-lucide="external-link" class="w-3 h-3"></i></a>
+                                    <a href="${m.link}" target="_blank" class="text-white/40 hover:text-white transition-colors">
+                                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                                    </a>
                                 </div>
                             </div>
-                        </div>`;
-                    mentionsFeedContainer.insertAdjacentHTML('beforeend', cardHTML);
+                        </div>
+                    `);
                 });
                 lucide.createIcons();
             };
 
-            window.toggleUserFilter = (user) => {
-                if (selectedUser === user) { selectedUser = null; } else { selectedUser = user; }
-                updateDashboard();
-            };
-
             const updateRanking = (data) => {
-                const userCounts = {};
-                data.forEach(m => {
-                    const u = m.user ? m.user.trim() : "Anônimo";
-                    if(u !== "Anônimo") userCounts[u] = (userCounts[u] || 0) + 1;
-                });
-                
-                const sortedUsers = Object.entries(userCounts).sort(([,a],[,b]) => b-a).slice(0, 5);
-                rankingContainer.innerHTML = '';
-                
-                if (sortedUsers.length === 0) {
-                    rankingContainer.innerHTML = `<p class="text-white/30 text-xs italic p-2">Sem dados para ranking.</p>`;
-                    return;
-                }
-
-                sortedUsers.forEach(([user, count], index) => {
-                    let medalColor = 'text-white/40'; 
-                    if (index === 0) medalColor = 'text-yellow-400'; 
-                    if (index === 1) medalColor = 'text-gray-300';   
-                    if (index === 2) medalColor = 'text-amber-700';  
-                    
-                    const isSelected = selectedUser === user;
-                    const activeClass = isSelected ? 'selected border-brand-primary bg-brand-primary/10' : 'border-white/5 bg-white/5';
-                    
-                    const itemHTML = `
-                        <div onclick="toggleUserFilter('${user}')" class="ranking-item flex items-center justify-between p-2.5 rounded-lg border ${activeClass}">
-                            <div class="flex items-center gap-3">
-                                <span class="font-bold text-sm w-4 text-center ${medalColor}">${index + 1}º</span>
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-primary to-brand-dark flex items-center justify-center text-xs font-bold text-white">
-                                    ${user.charAt(0).toUpperCase()}
-                                </div>
-                                <span class="text-sm text-white font-medium">@${user}</span>
-                            </div>
-                            <div class="text-xs font-bold text-brand-green bg-brand-green/10 px-2 py-1 rounded-full">
-                                ${count} interações
-                            </div>
+                const container = document.getElementById('ranking-list');
+                if(!container) return;
+                const counts = {};
+                data.forEach(m => { if(m.user && m.user !== 'Anônimo') counts[m.user] = (counts[m.user] || 0) + 1; });
+                const sorted = Object.entries(counts).sort(([,a],[,b]) => b-a).slice(0, 5);
+                container.innerHTML = '';
+                if(sorted.length === 0) { container.innerHTML = '<p class="text-noir-muted text-xs text-center col-span-full">Sem dados.</p>'; return; }
+                sorted.forEach(([u, c], i) => {
+                    const isFirst = i === 0;
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="ranking-item flex flex-col items-center justify-center p-3 rounded-xl border ${isFirst ? 'ranking-gold' : 'border-white/5 bg-white/5'} text-center h-full">
+                            ${isFirst ? '<i data-lucide="crown" class="w-4 h-4 text-brand-gold mb-2"></i>' : `<span class="text-white/20 font-bold text-[10px] mb-2">#${i+1}</span>`}
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-primary to-brand-dark flex items-center justify-center text-xs font-bold text-white mb-2">${u.charAt(0).toUpperCase()}</div>
+                            <span class="text-[10px] font-bold text-white truncate w-full mb-1 px-1">@${u}</span>
+                            <div class="text-[9px] font-bold ${isFirst ? 'text-brand-gold' : 'text-brand-green'} bg-black/40 px-2 py-0.5 rounded-full">${c}</div>
                         </div>
-                    `;
-                    rankingContainer.insertAdjacentHTML('beforeend', itemHTML);
+                    `);
                 });
+                lucide.createIcons();
             };
 
-            const updateWordCloud = (data) => {
-                const canvas = document.getElementById('word-cloud-canvas');
-                const emptyMsg = document.getElementById('empty-cloud-msg');
-                const textOnly = data.filter(m => m.type === 'Comentário' || m.type === 'DM' || m.type === 'Texto');
-                
-                let text = textOnly.map(m => m.content || "").join(' ').toLowerCase();
-                text = text.replace(/@[\w._]+/g, "").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s{2,}/g," ");
-                
-                const words = text.split(' ').filter(w => w.length > 2 && !stopWords.has(w));
-                
-                if (words.length < 3) {
-                    emptyMsg.classList.remove('hidden');
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    return;
-                } else {
-                    emptyMsg.classList.add('hidden');
-                }
-
-                const frequency = {};
-                words.forEach(w => { frequency[w] = (frequency[w] || 0) + 1; });
-                for (let i = 0; i < words.length - 1; i++) {
-                    const bigram = `${words[i]} ${words[i+1]}`;
-                    if (frequency[words[i]] && frequency[words[i+1]]) {
-                         frequency[bigram] = (frequency[bigram] || 0) + 1;
-                    }
-                }
-
-                let list = Object.entries(frequency)
-                    .filter(([word, freq]) => word.includes(' ') ? freq > 1 : true)
-                    .sort(([,a],[,b]) => b-a)
-                    .slice(0, 30) 
-                    .map(([word, freq]) => {
-                        const weight = word.includes(' ') ? freq * 15 : freq * 10;
-                        return [word, 12 + weight]; 
-                    });
-
-                const parent = canvas.parentElement;
-                canvas.width = parent.offsetWidth;
-                canvas.height = parent.offsetHeight;
-
-                WordCloud(canvas, {
-                    list: list,
-                    gridSize: 10,
-                    weightFactor: size => Math.min(size, 55),
-                    fontFamily: 'Switzer, sans-serif',
-                    color: '#E879F9',
-                    rotateRatio: 0, 
-                    backgroundColor: 'transparent',
-                    shrinkToFit: true,
-                    drawOutOfBound: false
+            if(form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    submitButton.disabled = true;
+                    buttonText.classList.add('hidden');
+                    buttonLoader.classList.remove('hidden');
+                    const formData = new FormData(form);
+                    const newMention = Object.fromEntries(formData.entries());
+                    newMention.id = Date.now();
+                    // Status APROVADO para manual
+                    newMention.status = 'APROVADO'; 
+                    
+                    try {
+                        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newMention) });
+                        
+                        // Atualiza localmente para não precisar recarregar tudo do zero
+                        const localItem = {
+                            id: newMention.id,
+                            date: newMention.data,
+                            channel: newMention.canal,
+                            user: newMention.usuario,
+                            link: newMention.link,
+                            type: newMention.tipo,
+                            sentiment: newMention.sentimento,
+                            topic: newMention.topico,
+                            content: newMention.conteudo,
+                            status: 'APROVADO'
+                        };
+                        
+                        mentions.unshift(localItem);
+                        populateChannelFilter(); // Atualiza o filtro de canais com o novo dado
+                        updateDashboard();
+                        form.reset();
+                        document.getElementById('date').valueAsDate = new Date();
+                        showFeedback('Registrado com sucesso!');
+                    } catch (error) { showFeedback('Erro ao conectar.', 'error'); } finally { submitButton.disabled = false; buttonText.classList.remove('hidden'); buttonLoader.classList.add('hidden'); }
                 });
-            };
-
-            const updateDashboard = () => {
-                const channelFilterValue = filterChannel.value;
-                const sentimentFilterValue = filterSentiment.value;
-                const startDateStr = filterDateStart.value;
-                const endDateStr = filterDateEnd.value;
-
-                let contextMentions = mentions;
-                if (startDateStr && endDateStr) {
-                    const startDate = new Date(startDateStr);
-                    const endDate = new Date(endDateStr);
-                    endDate.setHours(23, 59, 59, 999); 
-                    startDate.setMinutes(startDate.getMinutes() + startDate.getTimezoneOffset());
-                    endDate.setMinutes(endDate.getMinutes() + endDate.getTimezoneOffset());
-                    contextMentions = contextMentions.filter(m => {
-                        const d = new Date(m.date);
-                        d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
-                        return d >= startDate && d <= endDate;
-                    });
-                }
-                if (channelFilterValue !== 'all') contextMentions = contextMentions.filter(m => m.channel === channelFilterValue);
-                if (sentimentFilterValue !== 'all') contextMentions = contextMentions.filter(m => m.sentiment === sentimentFilterValue);
-                
-                updateRanking(contextMentions);
-
-                let finalMentions = contextMentions;
-                if (selectedUser) {
-                    finalMentions = finalMentions.filter(m => (m.user || "Anônimo") === selectedUser);
-                    rankingTitle.innerHTML = `<i data-lucide="filter" class="w-4 h-4 text-brand-primary"></i> Filtrando: @${selectedUser}`;
-                    clearUserFilterBtn.classList.remove('hidden');
-                } else {
-                    rankingTitle.innerHTML = `<i data-lucide="trophy" class="w-4 h-4 text-brand-yellow"></i> Top Users`;
-                    clearUserFilterBtn.classList.add('hidden');
-                }
-
-                const total = finalMentions.length;
-                animateValue(document.getElementById('kpi-total'), parseInt(document.getElementById('kpi-total').textContent), total, 500);
-
-                if (total > 0) {
-                    const positives = finalMentions.filter(m => m.sentiment === 'Positivo').length;
-                    document.getElementById('kpi-positive').textContent = `${((positives / total) * 100).toFixed(0)}%`;
-                    const negatives = finalMentions.filter(m => m.sentiment === 'Negativo').length;
-                    document.getElementById('kpi-negative').textContent = `${((negatives / total) * 100).toFixed(0)}%`;
-                    const neutrals = total - positives - negatives;
-                    document.getElementById('kpi-neutral').textContent = `${((neutrals / total) * 100).toFixed(0)}%`;
-                } else {
-                    ['kpi-positive', 'kpi-negative', 'kpi-neutral'].forEach(id => document.getElementById(id).textContent = '0%');
-                }
-
-                const storiesCount = finalMentions.filter(m => m.type === 'Story').length;
-                const reactionsCount = finalMentions.filter(m => m.type === 'Reação').length;
-                animateValue(document.getElementById('kpi-stories'), 0, storiesCount, 500);
-                animateValue(document.getElementById('kpi-reactions'), 0, reactionsCount, 500);
-
-                updateSentimentChart(finalMentions);
-                updateChannelChart(finalMentions);
-                updateTopicChart(finalMentions);
-                updateWordCloud(finalMentions); 
-                renderMentionsFeed(finalMentions);
-                lucide.createIcons(); 
-            };
-
-            clearUserFilterBtn.addEventListener('click', () => {
-                selectedUser = null;
-                updateDashboard();
-            });
-
-            function animateValue(obj, start, end, duration) {
-                let startTimestamp = null;
-                const step = (timestamp) => {
-                    if (!startTimestamp) startTimestamp = timestamp;
-                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                    obj.innerHTML = Math.floor(progress * (end - start) + start);
-                    if (progress < 1) window.requestAnimationFrame(step);
-                };
-                window.requestAnimationFrame(step);
             }
-
-            const updateChart = (chartInstance, elementId, type, data, options) => {
-                if (chartInstance) chartInstance.destroy();
-                const element = document.getElementById(elementId);
-                if (!element) return null;
-                const ctx = element.getContext('2d');
-                return new Chart(ctx, { type, data, options });
-            };
-
-            const updateSentimentChart = (data) => {
-                const counts = data.reduce((acc, m) => { acc[m.sentiment] = (acc[m.sentiment] || 0) + 1; return acc; }, {});
-                const chartData = {
-                    labels: Object.keys(counts),
-                    datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(s => sentimentColors[s]), borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1 }]
-                };
-                sentimentChart = updateChart(sentimentChart, 'sentiment-chart', 'doughnut', chartData, { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 20 } } } });
-            };
-
-            const updateChannelChart = (data) => {
-                const counts = data.reduce((acc, m) => { acc[m.channel] = (acc[m.channel] || 0) + 1; return acc; }, {});
-                const chartData = { labels: Object.keys(counts), datasets: [{ label: 'Menções', data: Object.values(counts), backgroundColor: '#FF6B5B', borderRadius: 4, barThickness: 20 }] };
-                channelChart = updateChart(channelChart, 'channel-chart', 'bar', chartData, { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } }, y: { grid: { display: false } } } });
-            };
-
-            const updateTopicChart = (data) => {
-                const counts = data.reduce((acc, m) => { acc[m.topic] = (acc[m.topic] || 0) + 1; return acc; }, {});
-                const sorted = Object.entries(counts).sort(([,a],[,b]) => b-a).slice(0, 6); 
-                const chartData = { labels: sorted.map(i => i[0]), datasets: [{ label: 'Menções', data: sorted.map(i => i[1]), backgroundColor: '#FFC107', borderRadius: 4, barThickness: 30 }] };
-                topicChart = updateChart(topicChart, 'topic-chart', 'bar', chartData, { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } }, x: { grid: { display: false } } } });
-            };
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                submitButton.disabled = true;
-                buttonText.classList.add('hidden');
-                buttonLoader.classList.remove('hidden');
-                const formData = new FormData(form);
-                const newMention = Object.fromEntries(formData.entries());
-                if (!newMention.content && (newMention.type === 'Story' || newMention.type === 'Reação')) {
-                     newMention.content = newMention.type === 'Story' ? '(Menção em Story)' : '(Reação / Like)';
-                }
-                newMention.id = Date.now();
-                try {
-                    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(newMention) });
-                    mentions.unshift(newMention);
-                    populateChannelFilter();
-                    updateDashboard();
-                    form.reset();
-                    contentContainer.classList.remove('hidden-field');
-                    contentContainer.classList.add('visible-field');
-                    document.getElementById('date').valueAsDate = new Date();
-                    showFeedback('Registrado com sucesso!');
-                } catch (error) { showFeedback('Erro ao conectar.', 'error'); } finally { submitButton.disabled = false; buttonText.classList.remove('hidden'); buttonLoader.classList.add('hidden'); }
-            });
 
             const today = new Date();
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(today.getDate() - 30);
-            filterDateStart.valueAsDate = thirtyDaysAgo;
-            filterDateEnd.valueAsDate = today;
-            [filterChannel, filterSentiment, filterDateStart, filterDateEnd].forEach(filter => { filter.addEventListener('change', updateDashboard); });
-            document.getElementById('date').valueAsDate = new Date();
+            
+            const elDateStart = document.getElementById('filter-date-start');
+            const elDateEnd = document.getElementById('filter-date-end');
+            const elDateForm = document.getElementById('date');
+
+            if(elDateStart) elDateStart.valueAsDate = thirtyDaysAgo;
+            if(elDateEnd) elDateEnd.valueAsDate = today;
+            if(elDateForm) elDateForm.valueAsDate = new Date();
+
+            // Correção do Event Listener (Blindagem)
+            const filterIds = ['filter-channel', 'filter-sentiment', 'filter-date-start', 'filter-date-end'];
+            filterIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', updateDashboard);
+                } else {
+                    console.warn(`Elemento de filtro não encontrado: ${id}`);
+                }
+            });
+            
             loadMentions();
         });
     </script>
