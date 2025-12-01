@@ -38,7 +38,7 @@
                   gold: '#FFD700',    // Ouro para Ranking
                 },
                 noir: {
-                  base: '#0A0A0A',    // Fundo mais profundo
+                  base: '#050505',    // Fundo mais profundo (Tech Noir)
                   surface: '#18181B', // Superfície dos cards
                   highlight: '#27272A',
                   text: '#FAFAFA',
@@ -46,8 +46,8 @@
                 }
               },
               boxShadow: {
-                'glow': '0 0 20px rgba(255, 107, 91, 0.10)',
-                'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
+                'glow': '0 0 25px rgba(255, 107, 91, 0.15)',
+                'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
               },
               animation: {
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -72,35 +72,39 @@
     <style>
         * { font-family: 'Switzer', sans-serif !important; }
         body {
-            background-color: #0A0A0A;
+            background-color: #050505;
             color: #FAFAFA;
             min-height: 100vh;
+            /* Gradiente Tech Noir restaurado e intensificado */
             background-image: 
-                radial-gradient(circle at 15% 0%, rgba(255, 107, 91, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 100%, rgba(100, 20, 20, 0.15) 0%, transparent 40%);
+                radial-gradient(circle at 0% 0%, rgba(255, 107, 91, 0.18) 0%, transparent 55%),
+                radial-gradient(circle at 90% 100%, rgba(100, 20, 20, 0.25) 0%, transparent 50%);
             background-attachment: fixed;
         }
         
         .bento-card {
-            background: rgba(24, 24, 27, 0.6); 
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(24, 24, 27, 0.45); /* Mais transparente para o glassmorphism */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08); /* Borda um pouco mais visível */
             border-radius: 1.25rem; 
-            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            transition: border-color 0.3s ease, transform 0.3s ease;
+            transition: all 0.3s ease;
         }
         
         .bento-card:hover {
-            border-color: rgba(255, 107, 91, 0.15);
+            border-color: rgba(255, 107, 91, 0.25);
+            background: rgba(24, 24, 27, 0.55);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px -4px rgba(0, 0, 0, 0.4);
         }
 
         /* Inputs estilizados */
         input, select, textarea {
-            background: rgba(0, 0, 0, 0.2) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: #FAFAFA !important;
             transition: all 0.2s ease;
             -webkit-appearance: none;
@@ -109,8 +113,8 @@
         }
         input:focus, select:focus, textarea:focus {
             border-color: #FF6B5B !important;
-            background: rgba(0, 0, 0, 0.4) !important;
-            box-shadow: 0 0 0 1px rgba(255, 107, 91, 0.2);
+            background: rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 0 0 1px rgba(255, 107, 91, 0.3);
             outline: none;
         }
         
@@ -122,12 +126,12 @@
         
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #FF6B5B; }
         
         /* Nav Button com Badge Relativo */
         .nav-btn {
-            @apply relative px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 border border-transparent text-noir-muted hover:text-white hover:bg-white/5;
+            @apply relative px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 border border-transparent text-noir-muted hover:text-white hover:bg-white/10;
         }
         .nav-btn.active {
             @apply text-brand-primary bg-brand-primary/10 border-brand-primary/20 shadow-glow;
@@ -142,19 +146,20 @@
         .view-section.active { display: flex; flex-direction: column; }
 
         /* Loader Ajustado */
-        #app-loader { position: fixed; inset: 0; background-color: #0A0A0A; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        #app-loader { position: fixed; inset: 0; background-color: #050505; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         .loader-container { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
-        .loader-circle { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 107, 91, 0.1); border-top-color: #FF6B5B; animation: spin 1s infinite linear; }
+        .loader-circle { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255, 107, 91, 0.15); border-top-color: #FF6B5B; animation: spin 1s infinite linear; box-shadow: 0 0 15px rgba(255, 107, 91, 0.1); }
         @keyframes spin { to { transform: rotate(360deg); } }
         
         .ranking-gold {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.02) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.05);
         }
 
         .sentiment-btn-sm {
-            @apply p-2 rounded-lg border border-white/5 bg-white/5 text-noir-muted transition hover:bg-white/10 flex items-center justify-center;
+            @apply p-2 rounded-lg border border-white/10 bg-white/5 text-noir-muted transition hover:bg-white/10 flex items-center justify-center;
         }
         .sentiment-btn-sm.active-pos { @apply bg-brand-green/20 text-brand-green border-brand-green/50; }
         .sentiment-btn-sm.active-neg { @apply bg-brand-primary/20 text-brand-primary border-brand-primary/50; }
@@ -179,7 +184,7 @@
         <header class="sticky top-0 z-50 border-b border-white/5 bg-noir-base/80 backdrop-blur-xl">
             <div class="container mx-auto px-4 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="flex items-center gap-3">
-                    <div class="bg-gradient-to-br from-brand-primary/20 to-brand-primary/5 p-2 rounded-lg border border-brand-primary/10">
+                    <div class="bg-gradient-to-br from-brand-primary/20 to-brand-primary/5 p-2 rounded-lg border border-brand-primary/10 shadow-[0_0_15px_rgba(255,107,91,0.15)]">
                         <img src="https://i.postimg.cc/nLD5MpPn/Logo-Woca-Icone.png" alt="Woca Logo" class="w-6 h-6 object-contain">
                     </div>
                     <div class="hidden sm:block">
@@ -218,14 +223,14 @@
                     </div>
                     <div class="flex flex-wrap gap-4 w-full xl:w-auto items-center justify-end">
                         <div class="relative w-full sm:w-auto min-w-[180px] group">
-                             <select id="filter-channel" class="w-full px-4 py-2.5 rounded-xl text-sm cursor-pointer pl-10 appearance-none bg-black/20 border border-white/10 hover:border-brand-primary/50">
+                             <select id="filter-channel" class="w-full px-4 py-2.5 rounded-xl text-sm cursor-pointer pl-10 appearance-none bg-black/30 border border-white/10 hover:border-brand-primary/50 text-white">
                                 <option value="all">Todos Canais</option>
                             </select>
                             <i data-lucide="hash" class="absolute left-3 top-3 w-4 h-4 text-noir-muted pointer-events-none"></i>
                             <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-noir-muted pointer-events-none group-hover:text-brand-primary transition-colors"></i>
                         </div>
                         <div class="relative w-full sm:w-auto min-w-[200px] group">
-                            <select id="filter-sentiment" class="w-full px-4 py-2.5 rounded-xl text-sm cursor-pointer pl-10 appearance-none bg-black/20 border border-white/10 hover:border-brand-primary/50">
+                            <select id="filter-sentiment" class="w-full px-4 py-2.5 rounded-xl text-sm cursor-pointer pl-10 appearance-none bg-black/30 border border-white/10 hover:border-brand-primary/50 text-white">
                                 <option value="all">Todos Sentimentos</option>
                                 <option value="Positivo">Positivo</option>
                                 <option value="Negativo">Negativo</option>
@@ -234,7 +239,7 @@
                             <i data-lucide="heart" class="absolute left-3 top-3 w-4 h-4 text-noir-muted pointer-events-none"></i>
                             <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-noir-muted pointer-events-none group-hover:text-brand-primary transition-colors"></i>
                         </div>
-                        <div class="flex gap-2 w-full sm:w-auto items-center bg-black/20 p-1.5 rounded-xl border border-white/10">
+                        <div class="flex gap-2 w-full sm:w-auto items-center bg-black/30 p-1.5 rounded-xl border border-white/10">
                             <div class="relative">
                                 <input type="date" id="filter-date-start" class="bg-transparent border-none !shadow-none text-xs w-32 pl-8 pr-2 py-1.5 focus:bg-transparent text-white cursor-pointer relative z-10">
                                 <i data-lucide="calendar" class="absolute left-2 top-1.5 w-4 h-4 text-noir-muted pointer-events-none z-0"></i>
@@ -251,21 +256,21 @@
                 <!-- KPIs -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="bento-card p-6 items-center justify-center text-center relative overflow-hidden group min-h-[140px]">
-                        <div class="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute inset-0 bg-brand-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         <h4 class="text-[10px] font-bold text-noir-muted uppercase tracking-widest mb-2 relative z-10">Volume Total</h4>
-                        <p id="kpi-total" class="text-4xl md:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300 relative z-10">0</p>
+                        <p id="kpi-total" class="text-4xl md:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300 relative z-10 text-shadow">0</p>
                     </div>
                     <div class="bento-card p-6 items-center justify-center text-center group min-h-[140px]">
                         <h4 class="text-[10px] font-bold text-brand-green uppercase tracking-widest mb-2 opacity-80">Positivas</h4>
-                        <p id="kpi-positive" class="text-4xl md:text-5xl font-bold text-brand-green">0%</p>
+                        <p id="kpi-positive" class="text-4xl md:text-5xl font-bold text-brand-green drop-shadow-[0_0_15px_rgba(0,230,118,0.25)]">0%</p>
                     </div>
                     <div class="bento-card p-6 items-center justify-center text-center group min-h-[140px]">
                         <h4 class="text-[10px] font-bold text-brand-primary uppercase tracking-widest mb-2 opacity-80">Negativas</h4>
-                        <p id="kpi-negative" class="text-4xl md:text-5xl font-bold text-brand-primary">0%</p>
+                        <p id="kpi-negative" class="text-4xl md:text-5xl font-bold text-brand-primary drop-shadow-[0_0_15px_rgba(255,107,91,0.25)]">0%</p>
                     </div>
                      <div class="bento-card p-6 items-center justify-center text-center group min-h-[140px]">
                         <h4 class="text-[10px] font-bold text-noir-muted uppercase tracking-widest mb-2">Neutras</h4>
-                        <p id="kpi-neutral" class="text-4xl md:text-5xl font-bold text-gray-500">0%</p>
+                        <p id="kpi-neutral" class="text-4xl md:text-5xl font-bold text-gray-400">0%</p>
                     </div>
                 </div>
 
@@ -301,7 +306,7 @@
                     </div>
                     <div class="bento-card p-0 overflow-hidden relative">
                          <div class="p-5 border-b border-white/5 flex justify-between items-center bg-white/[0.02] shrink-0">
-                            <h3 class="text-xs font-bold text-brand-gold uppercase tracking-widest flex items-center gap-2">
+                            <h3 class="text-xs font-bold text-brand-gold uppercase tracking-widest flex items-center gap-2 drop-shadow-[0_0_5px_rgba(255,215,0,0.3)]">
                                 <i data-lucide="crown" class="w-4 h-4"></i> Top 5 Usuários
                             </h3>
                              <button id="clear-user-filter" class="hidden text-[10px] bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition border border-white/10">
@@ -332,7 +337,7 @@
                 <div class="bento-card p-8 lg:p-10 border-t-4 border-t-brand-primary shadow-2xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-12 bg-brand-primary/5 rounded-bl-full pointer-events-none"></div>
                     <div class="flex items-center gap-4 mb-8 pb-8 border-b border-white/5">
-                        <div class="p-4 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-dark text-white shadow-glow">
+                        <div class="p-4 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-dark text-white shadow-[0_0_20px_rgba(255,107,91,0.3)]">
                             <i data-lucide="pen-tool" class="w-6 h-6"></i>
                         </div>
                         <div>
